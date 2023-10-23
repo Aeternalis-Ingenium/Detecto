@@ -1,0 +1,53 @@
+# Byte-compiled, optimized, and DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Builds
+build/
+
+# Cache
+.cache
+.pytest_cache/
+.mypy_cache/
+
+# Code editor (IntelliJ & VSCode)
+.vscode/
+.idea/
+
+# Database-related
+*.sqlite3
+*.db
+versions/
+
+# Distributions package
+.Python
+dist/
+eggs/
+.eggs/
+lib/
+lib64/
+sdist/
+var/
+wheels/
+*.egg-info/
+*.egg
+venv/
+
+# Credentials
+env/**
+.DS_Store
+.env
+
+# Log files
+logs/**
+*.log
+
+# Tests and coverage reports:
+.coverage
+coverage/**
+coverage.*
+cov.*
+
+# Virtual environment & packages
+.python-version
