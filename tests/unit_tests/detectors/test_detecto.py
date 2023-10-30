@@ -14,11 +14,11 @@ class TestDetectoInterfaceClass(TestCase):
     def test_score(self):
         self.assertIsNone(self.detector.score(dataset=[1, 2, 3]))
 
-    def test_predict(self):
-        self.assertIsNone(self.detector.predict(dataset=[1, 2, 3]))
+    def test_detect(self):
+        self.assertIsNone(self.detector.detect(dataset=[1, 2, 3]))
 
     def test_evaluate(self):
-        self.assertIsNone(self.detector.evaluate(dataset=[3000, 8, 24, 6000], prediction=[1, 0, 0, 1]))
+        self.assertIsNone(self.detector.evaluate(dataset=[3000, 8, 24, 6000], detected=[1, 0, 0, 1]))
 
     def test_set_params(self):
         self.assertIsNone(self.detector.set_params())  # type: ignore
