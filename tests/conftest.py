@@ -25,5 +25,5 @@ class AbstractDetectoTestModel(Detecto):
 
 
 class AbstractTimeframeTestModel(Timeframe):
-    def set_interval(self, **params: dict[str, int | float | bool]) -> None:
+    def set_interval(self, **kwargs: int | float | bool) -> None:
         pass
