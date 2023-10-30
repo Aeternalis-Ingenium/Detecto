@@ -29,7 +29,7 @@ class Detecto(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def predict(self, dataset: DataFrame | list) -> DataFrame:
+    def detect(self, dataset: DataFrame | list) -> DataFrame:
         """
         Predict if the provided data points are anomalies based on the trained model.
 
@@ -41,13 +41,13 @@ class Detecto(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def evaluate(self, dataset: DataFrame | list, prediction: DataFrame | list) -> DataFrame:
+    def evaluate(self, dataset: DataFrame | list, detected: DataFrame | list) -> DataFrame:
         """
         Evaluate the performance of the anomaly detection model based on true and predicted labels.
 
         Parameters:
         - dataset (DataFrame or array-like): Data for which predictions are to be made.
-        - prediction (DataFrame | array-like): Predicted labels from the model.
+        - detected (DataFrame | array-like): Detected labels from the model.
 
         Returns:
         - metrics (DataFrame): Performance metrics.
