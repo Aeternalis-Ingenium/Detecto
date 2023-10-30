@@ -3,5 +3,5 @@ from abc import ABCMeta, abstractmethod
 
 class Timeframe(metaclass=ABCMeta):
     @abstractmethod
-    def set_interval(self, **params: dict[str, int | float]) -> None:
+    def set_interval(self, **kwargs: int | float | bool) -> None:
         pass
