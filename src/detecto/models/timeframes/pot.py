@@ -7,12 +7,12 @@ class POTTimeframe(Timeframe):
         self.t1: float | None = None
         self.t2: float | None = None
 
-    def set_interval(self, **params: dict[str, int | float | bool]) -> None:  # type: ignore
-        total_rows = params.get("total_rows")
-        t0_percentage = params.get("t0_percentage", 0.6)
-        t1_percentage = params.get("t1_percentage", 0.25)
-        t2_percentage = params.get("t2_percentage", 0.15)
-        prod_mode = params.get("prod_mode", False)
+    def set_interval(self, **kwargs: int | float | bool) -> None:  # type: ignore
+        total_rows = kwargs.get("total_rows")
+        t0_percentage = kwargs.get("t0_percentage", 0.6)
+        t1_percentage = kwargs.get("t1_percentage", 0.25)
+        t2_percentage = kwargs.get("t2_percentage", 0.15)
+        prod_mode = kwargs.get("prod_mode", False)
 
         if prod_mode:
             t2 = 1
@@ -29,9 +29,9 @@ class POTTimeframe(Timeframe):
             uncounted_days = t0 + t1 + t2 - total_rows  # type: ignore
 
         if uncounted_days < 0:
-            t1 += abs(uncounted_days)
+            t1 += abs(uncounted_days)  # type: ignore
         elif uncounted_days > 0:
-            t1 -= uncounted_days
+            t1 -= uncounted_days  # type: ignore
 
         self.t0, self.t1, self.t2 = t0, t1, t2
 
