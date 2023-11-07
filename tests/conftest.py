@@ -14,7 +14,7 @@ class AbstractDetectoTestModel(Detecto):
     def evaluate(self, dataset: DataFrame, **kwargs: DataFrame | list | int | float | None) -> DataFrame:
         pass
 
-    def set_params(self, **kwargs: int | float | None) -> None:
+    def set_params(self, **kwargs: int | float | str | None) -> None:
         pass
 
     @property
