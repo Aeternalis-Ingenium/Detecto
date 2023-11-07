@@ -42,7 +42,7 @@ class Detecto(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def set_params(self, **kwargs: int | float | None) -> None:
+    def set_params(self, **kwargs: int | float | str | None) -> None:
         """
         Set the parameters for the anomaly detection model.
 
