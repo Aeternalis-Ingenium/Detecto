@@ -2,12 +2,33 @@ from src.detecto.models.timeframes.interface import Timeframe
 
 
 class POTTimeframe(Timeframe):
+    """
+    POTTimeframe manages the intervals used in the Peaks Over Threshold (POT) method for anomaly detection.
+
+    Attributes:
+        * t0 (float | None): The starting point of the timeframe for learning the longest behavior of the data.
+        * t1 (float | None): The starting point of the timeframe for setting the threshold.
+        * t2 (float | None): The starting point of the timeframe for detecting anomalies.
+    """
+
     def __init__(self) -> None:
         self.t0: float | None = None
         self.t1: float | None = None
         self.t2: float | None = None
 
     def set_interval(self, **kwargs: int | float | bool) -> None:  # type: ignore
+        """
+        Sets the intervals t0, t1, and t2 based on the dataset size and the specified percentages of the dataset
+        to be used for learning, threshold setting, and anomaly detection.
+
+        # Parameters
+            * #### kwargs
+                * total_rows (int): The total number of rows in the dataset.
+                * t0_percentage (float): The percentage of the total rows to use for learning the normal behavior.
+                * t1_percentage (float): The percentage of the total rows to use for setting the threshold.
+                * t2_percentage (float): The percentage of the total rows to use for detecting anomalies.
+                * prod_mode (bool): A flag indicating whether the model is in production mode, which affects the interval calculations.
+        """
         total_rows = kwargs.get("total_rows")
         t0_percentage = kwargs.get("t0_percentage", 0.6)
         t1_percentage = kwargs.get("t1_percentage", 0.25)
