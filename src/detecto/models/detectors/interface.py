@@ -5,7 +5,7 @@ from pandas import DataFrame
 
 class Detecto(metaclass=ABCMeta):
     @abstractmethod
-    def fit(self, dataset: DataFrame, **kwargs: DataFrame | int | float | None) -> DataFrame:
+    def fit(self, dataset: DataFrame, **kwargs: DataFrame | list | int | float | None) -> DataFrame:
         """
         Train the anomaly detection model using the provided data.
 
@@ -17,7 +17,7 @@ class Detecto(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def detect(self, dataset: DataFrame, **kwargs: DataFrame | int | float | None) -> DataFrame:
+    def detect(self, dataset: DataFrame, **kwargs: DataFrame | list | int | float | None) -> DataFrame:
         """
         Predict if the provided data points are anomalies based on the trained model.
 
@@ -29,7 +29,7 @@ class Detecto(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def evaluate(self, dataset: DataFrame, **kwargs: DataFrame | int | float | None) -> DataFrame:
+    def evaluate(self, dataset: DataFrame, **kwargs: DataFrame | list | int | float | None) -> DataFrame:
         """
         Evaluate the performance of the anomaly detection model based on true and predicted labels.
 
