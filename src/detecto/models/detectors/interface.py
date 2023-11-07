@@ -1,11 +1,11 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 from pandas import DataFrame
 
 
 class Detecto(metaclass=ABCMeta):
     @abstractmethod
-    def fit(self, dataset: DataFrame | list) -> None:
+    def fit(self, dataset: DataFrame, **kwargs: DataFrame | int | float | None) -> DataFrame:
         """
         Train the anomaly detection model using the provided data.
 
@@ -17,19 +17,7 @@ class Detecto(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def score(self, dataset: DataFrame | list) -> DataFrame:
-        """
-        Compute the anomaly scores for the provided data based on the trained model.
-
-        Parameters:
-        - dataset (DataFrame or array-like): Data for which anomaly scores are to be computed.
-
-        Returns:
-        - scores (DataFrame): Anomaly scores for each data point.
-        """
-
-    @abstractmethod
-    def detect(self, dataset: DataFrame | list) -> DataFrame:
+    def detect(self, dataset: DataFrame, **kwargs: DataFrame | int | float | None) -> DataFrame:
         """
         Predict if the provided data points are anomalies based on the trained model.
 
@@ -41,7 +29,7 @@ class Detecto(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def evaluate(self, dataset: DataFrame | list, detected: DataFrame | list) -> DataFrame:
+    def evaluate(self, dataset: DataFrame, **kwargs: DataFrame | int | float | None) -> DataFrame:
         """
         Evaluate the performance of the anomaly detection model based on true and predicted labels.
 
@@ -54,18 +42,18 @@ class Detecto(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def set_params(self, **params: dict) -> None:
+    def set_params(self, **kwargs: int | float | None) -> None:
         """
         Set the parameters for the anomaly detection model.
 
         Parameters:
-        - **params (dict): Parameters to be set for the model.
+        - **kwargs (dict): Parameters to be set for the model.
 
         Returns:
         - None
         """
 
-    @abstractmethod
+    @abstractproperty
     def get_params(self) -> dict:
         """
         Retrieve the parameters of the anomaly detection model.
