@@ -39,7 +39,7 @@ class TestPOTDetecto(TestCase):
         assert str(self.detector) == "Peak Over Threshold Anomaly Detector"
         self.assertIsNone(self.detector.evaluate(dataset=self.df_1, detected=expected_detected_df))
 
-    def test_compute_exceedance_threshold(self):
+    def test_compute_exceedance_threshold_method(self):
         exceedance_threshold_df = self.detector.compute_exceedance_threshold(dataset=self.df_1, q=0.99)
 
         expected_exceedance_threshold = DataFrame(
@@ -57,7 +57,7 @@ class TestPOTDetecto(TestCase):
             left=exceedance_threshold_df["df_1_feature_2"], right=expected_exceedance_threshold["df_1_feature_2"]  # type: ignore
         )
 
-    def test_extract_exeedances(self):
+    def test_extract_exeedance_method(self):
         expected_threshold_df = DataFrame(
             data={
                 "df_1_feature_1": [59.5, 59.5, 59.5, 59.5, 59.5, 59.5, 69.4, 79.3, 89.2, 99.1],
@@ -109,8 +109,39 @@ class TestPOTDetecto(TestCase):
             left=exceedance_df["df_1_feature_2"], right=expected_exceedance_df["df_1_feature_2"]
         )
 
-    def test_genpareto_fitting_method(self):
-        pass
+    def test_genpareto_fitting_method_with_90_quantile(self):
+        expected_exceedance_threshold_df = DataFrame(
+            data={
+                "df_1_feature_1": [55.0, 55.0, 55.0, 55.0, 55.0, 55.0, 64.0, 73.0, 82.0, 91.0],
+                "df_1_feature_2": [30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 51.6, 61.7, 77.8, 90.6],
+            }
+        )
+        expected_exceedance_df = DataFrame(
+            data={
+                "df_1_feature_1": [0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 6.0, 7.0, 8.0, 9.0],
+                "df_1_feature_2": [0.0, 0.0, 0.0, 6.0, 0.0, 0.0, 23.4, 0.0, 11.2, 14.4],
+            }
+        )
+        expected_anomaly_score_df = DataFrame(
+            data={
+                "anomaly_score_df_1_feature_1": [0.0, 0.0, 0.0, 0.0],
+                "anomaly_score_df_1_feature_2": [0.000000, 0.000000, 1.298860, 2.129428],
+            }
+        )
+
+        exceedance_threshold_df = self.detector.compute_exceedance_threshold(dataset=self.df_1, q=0.90)
+
+        pd_testing.assert_frame_equal(left=exceedance_threshold_df, right=expected_exceedance_threshold_df)
+
+        exceedance_data_df = self.detector.extract_exceedance(
+            dataset=self.df_1, exceedance_threshold_dataset=exceedance_threshold_df, fill_value=0.0, clip_lower=0.0
+        )
+
+        pd_testing.assert_frame_equal(left=exceedance_data_df, right=expected_exceedance_df)
+
+        anomaly_score_df = self.detector.fit(dataset=self.df_1, exceedance_dataset=exceedance_data_df)
+
+        pd_testing.assert_frame_equal(left=anomaly_score_df, right=expected_anomaly_score_df)
 
     def test_detect_method(self):
         pass
