@@ -1,11 +1,11 @@
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
 
 from pandas import DataFrame
 
 
 class Detecto(metaclass=ABCMeta):
     @abstractmethod
-    def fit(self, dataset: DataFrame, **kwargs: DataFrame | list | int | float | None) -> DataFrame:
+    def fit(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
         """
         Train the anomaly detection model using the provided data.
 
@@ -17,7 +17,7 @@ class Detecto(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def detect(self, dataset: DataFrame, **kwargs: DataFrame | list | int | float | None) -> DataFrame:
+    def detect(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
         """
         Predict if the provided data points are anomalies based on the trained model.
 
@@ -29,7 +29,7 @@ class Detecto(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def evaluate(self, dataset: DataFrame, **kwargs: DataFrame | list | int | float | None) -> DataFrame:
+    def evaluate(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
         """
         Evaluate the performance of the anomaly detection model based on true and predicted labels.
 
@@ -41,23 +41,24 @@ class Detecto(metaclass=ABCMeta):
         - metrics (DataFrame): Performance metrics.
         """
 
+    @property
     @abstractmethod
-    def set_params(self, **kwargs: int | float | str | None) -> None:
-        """
-        Set the parameters for the anomaly detection model.
-
-        Parameters:
-        - **kwargs (dict): Parameters to be set for the model.
-
-        Returns:
-        - None
-        """
-
-    @abstractproperty
-    def get_params(self) -> dict:
+    def params(self) -> dict:
         """
         Retrieve the parameters of the anomaly detection model.
 
         Returns:
-        - params (dict): Current parameters of the model.
+        - params (dict[str | int, str | int | float | None | dict[str | int, str | int | float | None]]): Current parameters of the model.
+        """
+
+    @abstractmethod
+    def set_params(self, **kwargs: str | int | float | None) -> None:
+        """
+        Set the parameters for the anomaly detection model.
+
+        Parameters:
+        - **kwargs (dict[str, str | int | float | None]): Parameters to be set for the model.
+
+        Returns:
+        - None
         """
