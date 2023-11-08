@@ -1,23 +1,34 @@
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 
 from src.detecto.models.detectors.interface import Detecto
+from src.detecto.models.timeframes.interface import Timeframe
 
 
 class AbstractDetectoTestModel(Detecto):
-    def fit(self, dataset: DataFrame | list) -> None:
+    def fit(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
         pass
 
-    def score(self, dataset: DataFrame | list) -> DataFrame:
+    def detect(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
         pass
 
-    def predict(self, dataset: DataFrame | list) -> DataFrame:
+    def evaluate(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
         pass
 
-    def evaluate(self, dataset: DataFrame | list, prediction: DataFrame | list) -> DataFrame:
+    @property
+    def params(self) -> dict:  # type: ignore
         pass
 
-    def set_params(self, **params: dict) -> None:
+    def set_params(self, **kwargs: str | int | float | None) -> None:
         pass
 
-    def get_params(self) -> dict:
-        return {"param_1": "Test Param 1", "param_2": "Test Param 2"}
+
+class AbstractTimeframeTestModel(Timeframe):
+    def set_interval(self, **kwargs: int | float | bool) -> None:
+        pass
+
+
+def init_df(path_to_file: str, shuffle: bool = True):
+    df = read_csv(path_to_file)
+    if shuffle:
+        return df.sample(frac=1, random_state=1).reset_index(drop=True)
+    return df
