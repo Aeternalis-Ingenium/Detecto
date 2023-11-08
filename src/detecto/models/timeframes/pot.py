@@ -12,9 +12,9 @@ class POTTimeframe(Timeframe):
     """
 
     def __init__(self) -> None:
-        self.t0: float | None = None
-        self.t1: float | None = None
-        self.t2: float | None = None
+        self.t0: int | None = None
+        self.t1: int | None = None
+        self.t2: int | None = None
 
     def set_interval(self, **kwargs: int | float | bool) -> None:  # type: ignore
         """
