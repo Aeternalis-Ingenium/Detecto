@@ -71,23 +71,6 @@ class POTDetecto(Detecto):
             }
         )
 
-    def __invert_p_value(self, p_value: float) -> float:
-        """
-        Invert a p-value for computing the anomaly score.
-
-        # Parameters
-            * p_value (float): The p-value to invert.
-
-        # Returns
-            * float: The inverted p-value, or zero if the original p-value is zero or infinity.
-        """
-        if p_value != 0.0 and p_value != float("inf"):
-            return 1 / p_value
-        elif p_value == float("inf"):
-            return p_value
-        else:
-            return 0.0
-
     def compute_exceedance_threshold(self, dataset: DataFrame, q: float = 0.99) -> DataFrame:
         """
         Calculate the exceedance threshold for each feature in the dataset.
@@ -136,6 +119,7 @@ class POTDetecto(Detecto):
         """
         exceedance_dataset = kwargs.get("exceedance_dataset", None)
         anomaly_scores = dataset.drop(dataset.index).add_prefix("anomaly_score_").to_dict(orient="list")
+        anomaly_scores["total_anomaly_score"] = []
         t1_t2_exceedances = exceedance_dataset.iloc[self.timeframe.t0 :]  # type: ignore
 
         self.__set_params_structure(feature_names=t1_t2_exceedances.columns)
@@ -155,7 +139,7 @@ class POTDetecto(Detecto):
                         p_value: float = genpareto.sf(
                             x=exceedances_of_interest[feature_name].iloc[0], c=c, loc=loc, scale=scale
                         )
-                        inverted_p_value = self.__invert_p_value(p_value=p_value)
+                        inverted_p_value = 1 / p_value if p_value > 0.0 else float("inf")
                         anomaly_score += inverted_p_value
                         self.set_params(
                             feature_name=feature_name,
@@ -164,8 +148,7 @@ class POTDetecto(Detecto):
                             loc=loc,
                             scale=scale,
                             p_value=p_value,
-                            inverted_p_value=inverted_p_value,
-                            anomaly_score=anomaly_score,
+                            anomaly_score=inverted_p_value,
                         )
                         anomaly_scores[f"anomaly_score_{feature_name}"].append(anomaly_score)
                     else:
@@ -176,10 +159,9 @@ class POTDetecto(Detecto):
                             loc=None,
                             scale=None,
                             p_value=None,
-                            inverted_p_value=None,
-                            anomaly_score=0.0,
+                            anomaly_score=None,
                         )
-                        anomaly_scores[f"anomaly_score_{feature_name}"].append(0.0)
+                        anomaly_scores[f"anomaly_score_{feature_name}"].append(None)
                 else:
                     self.set_params(
                         feature_name=feature_name,
@@ -188,10 +170,9 @@ class POTDetecto(Detecto):
                         loc=None,
                         scale=None,
                         p_value=None,
-                        inverted_p_value=None,
-                        anomaly_score=0.0,
+                        anomaly_score=None,
                     )
-                    anomaly_scores[f"anomaly_score_{feature_name}"].append(0.0)
+                    anomaly_scores[f"anomaly_score_{feature_name}"].append(None)
         return DataFrame(data=anomaly_scores)
 
     def compute_anomaly_threshold(self, dataset: DataFrame):
