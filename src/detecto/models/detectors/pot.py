@@ -173,7 +173,7 @@ class POTDetecto(Detecto):
                         anomaly_score=None,
                     )
                     anomaly_scores[f"anomaly_score_{feature_name}"].append(None)
-            anomaly_scores[f"total_anomaly_score"].append(total_anomaly_score_per_row)
+            anomaly_scores["total_anomaly_score"].append(total_anomaly_score_per_row)
         return DataFrame(data=anomaly_scores)
 
     def compute_anomaly_threshold(self, dataset: DataFrame):
