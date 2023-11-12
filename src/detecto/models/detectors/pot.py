@@ -127,7 +127,7 @@ class POTDetecto(Detecto):
         for row in range(0, t1_t2_exceedances.shape[0]):
             exceedances_for_learning = exceedance_dataset.iloc[: self.timeframe.t0 + row]  # type: ignore
             exceedances_of_interest = t1_t2_exceedances.iloc[[row]]
-            anomaly_score = 0.0
+            total_anomaly_score_per_row = 0.0
 
             for feature_name in t1_t2_exceedances.columns:
                 exceedances_for_fitting: list[float] = exceedances_for_learning[feature_name][
@@ -140,7 +140,7 @@ class POTDetecto(Detecto):
                             x=exceedances_of_interest[feature_name].iloc[0], c=c, loc=loc, scale=scale
                         )
                         inverted_p_value = 1 / p_value if p_value > 0.0 else float("inf")
-                        anomaly_score += inverted_p_value
+                        total_anomaly_score_per_row += inverted_p_value
                         self.set_params(
                             feature_name=feature_name,
                             row=row,
@@ -150,7 +150,7 @@ class POTDetecto(Detecto):
                             p_value=p_value,
                             anomaly_score=inverted_p_value,
                         )
-                        anomaly_scores[f"anomaly_score_{feature_name}"].append(anomaly_score)
+                        anomaly_scores[f"anomaly_score_{feature_name}"].append(inverted_p_value)
                     else:
                         self.set_params(
                             feature_name=feature_name,
@@ -173,6 +173,7 @@ class POTDetecto(Detecto):
                         anomaly_score=None,
                     )
                     anomaly_scores[f"anomaly_score_{feature_name}"].append(None)
+            anomaly_scores[f"total_anomaly_score"].append(total_anomaly_score_per_row)
         return DataFrame(data=anomaly_scores)
 
     def compute_anomaly_threshold(self, dataset: DataFrame):
