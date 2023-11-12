@@ -125,7 +125,8 @@ class TestPOTDetecto(TestCase):
         expected_anomaly_score_df = DataFrame(
             data={
                 "anomaly_score_df_1_feature_1": [float("inf"), float("inf"), float("inf"), float("inf")],
-                "anomaly_score_df_1_feature_2": [float("inf"), None, float("inf"), float("inf")],
+                "anomaly_score_df_1_feature_2": [float("inf"), None, 1.2988597467759642, 2.129427676525411],
+                "total_anomaly_score": [float("inf"), float("inf"), float("inf"), float("inf")],
             }
         )
 
