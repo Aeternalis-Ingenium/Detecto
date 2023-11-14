@@ -16,6 +16,7 @@ class POTDetecto(Detecto):
 
     def __init__(self):
         self.timeframe = POTTimeframe()
+        self.anomaly_threshold = None
         self.__params = {}
 
     def __set_params_structure(self, total_rows: int) -> None:
