@@ -1,3 +1,4 @@
+from numpy import quantile
 from pandas import DataFrame
 from scipy.stats import genpareto
 
@@ -247,8 +248,13 @@ class POTDetecto(Detecto):
             anomaly_scores["total_anomaly_score"].append(total_anomaly_score_per_row)
         return DataFrame(data=anomaly_scores)
 
-    def compute_anomaly_threshold(self, dataset: DataFrame):
-        pass
+    def compute_anomaly_threshold(self, dataset: DataFrame, q: float = 0.80):
+        self.anomaly_threshold = quantile(
+            a=dataset[(dataset["total_anomaly_score"] > 0) & (dataset["total_anomaly_score"] != float("inf"))]
+            .iloc[: self.timeframe.t1]["total_anomaly_score"]
+            .to_list(),
+            q=q,
+        )
 
     def detect(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
         pass
