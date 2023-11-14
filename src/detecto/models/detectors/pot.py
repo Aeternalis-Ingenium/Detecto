@@ -11,6 +11,7 @@ class POTDetecto(Detecto):
 
     # Attributes
         * timeframe (POTTimeframe): Instance managing the timeframe details for the POT method.
+        * anomaly_threshold (float): The threshold to measure the anomalous data.
         * __params (dict): Private dictionary to store parameters after model fitting.
     """
 
