@@ -1,3 +1,4 @@
+from numpy import quantile
 from pandas import DataFrame
 from scipy.stats import genpareto
 
@@ -11,11 +12,13 @@ class POTDetecto(Detecto):
 
     # Attributes
         * timeframe (POTTimeframe): Instance managing the timeframe details for the POT method.
+        * anomaly_threshold (float): The threshold to measure the anomalous data.
         * __params (dict): Private dictionary to store parameters after model fitting.
     """
 
     def __init__(self):
         self.timeframe = POTTimeframe()
+        self.anomaly_threshold = None
         self.__params = {}
 
     def __set_params_structure(self, total_rows: int) -> None:
@@ -199,7 +202,7 @@ class POTDetecto(Detecto):
             total_anomaly_score_per_row = 0.0
 
             for feature_name in t1_t2_exceedances.columns:
-                exceedances_for_fitting: list[float] = exceedances_for_learning[feature_name][
+                exceedances_for_fitting: list[float | None] = exceedances_for_learning[feature_name][
                     exceedances_for_learning[feature_name] > 0.0
                 ].to_list()
                 if exceedances_of_interest[feature_name].iloc[0] > 0:
@@ -242,14 +245,33 @@ class POTDetecto(Detecto):
                         anomaly_score=None,
                     )
                     anomaly_scores[f"anomaly_score_{feature_name}"].append(None)
+            self.set_params(
+                feature_name="total_anomaly_score", row=row, total_anomaly_score_per_row=total_anomaly_score_per_row
+            )
             anomaly_scores["total_anomaly_score"].append(total_anomaly_score_per_row)
         return DataFrame(data=anomaly_scores)
 
-    def compute_anomaly_threshold(self, dataset: DataFrame):
-        pass
+    def compute_anomaly_threshold(self, dataset: DataFrame, q: float = 0.80):
+        clean_dataset = dataset[
+            (dataset["total_anomaly_score"] > 0) & (dataset["total_anomaly_score"] != float("inf"))
+        ]
+
+        if len(clean_dataset) == 0:
+            raise ValueError("There are no total anomaly scores per row > 0")
+
+        self.anomaly_threshold = quantile(
+            a=clean_dataset.iloc[: self.timeframe.t1]["total_anomaly_score"].to_list(),
+            q=q,
+        )
 
     def detect(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
-        pass
+        anomaly_data = {}
+        t2_dataset = dataset.iloc[self.timeframe.t1 :]
+        anomaly_data["is_anomaly"] = (
+            t2_dataset["total_anomaly_score"].apply(lambda x: x > self.anomaly_threshold).to_list()
+        )
+
+        return DataFrame(data=anomaly_data)
 
     def evaluate(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
         pass
