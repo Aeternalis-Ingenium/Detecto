@@ -265,7 +265,13 @@ class POTDetecto(Detecto):
         )
 
     def detect(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
-        pass
+        anomaly_data = {}
+        t2_dataset = dataset.iloc[self.timeframe.t1 :]
+        anomaly_data["is_anomaly"] = (
+            t2_dataset["total_anomaly_score"].apply(lambda x: x > self.anomaly_threshold).to_list()
+        )
+
+        return DataFrame(data=anomaly_data)
 
     def evaluate(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
         pass
