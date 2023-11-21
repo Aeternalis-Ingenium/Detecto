@@ -990,11 +990,64 @@ class TestPOTDetecto(TestCase):
     def test_evaluate_method(self):
         pass
 
-    def test_set_params_method(self):
-        pass
+    def test_params_attributes(self):
+        expected_params = {
+            0: [
+                {
+                    "anomaly_score_col_1": {
+                        "gpd_params": {
+                            "c": 0.123,
+                            "loc": 0.002,
+                            "scale": 0.0,
+                        },
+                        "gpd_stats": {"p_value": 0.05, "anomaly_score": 20.0},
+                    },
+                },
+                {
+                    "anomaly_score_col_2": {
+                        "gpd_params": {
+                            "c": 0.253,
+                            "loc": 0.005,
+                            "scale": 0.03,
+                        },
+                        "gpd_stats": {"p_value": 0.005, "anomaly_score": 200.0},
+                    },
+                },
+                {
+                    "total_anomaly_score": 220.0,
+                },
+            ]
+        }
+        self.detector.params[0] = []  # type: ignore
 
-    def test_get_params_method(self):
-        pass
+        assert type(self.detector.params) == dict
+        assert len(self.detector.params[0]) == 0  # type: ignore
+
+        self.detector.set_params(
+            feature_name="anomaly_score_col_1",
+            row=0,
+            c=0.123,
+            loc=0.002,
+            scale=0.0,
+            p_value=0.05,
+            anomaly_score=20.0,
+        )
+
+        self.detector.set_params(
+            feature_name="anomaly_score_col_2",
+            row=0,
+            c=0.253,
+            loc=0.005,
+            scale=0.03,
+            p_value=0.005,
+            anomaly_score=200.0,
+        )
+
+        self.detector.set_params(feature_name="total_anomaly_score", row=0, total_anomaly_score_per_row=220.0)
+
+        assert type(self.detector.params) == type(expected_params)
+        assert len(self.detector.params[0]) == len(expected_params[0])  # type: ignore
+        assert self.detector.params[0] == expected_params[0]  # type: ignore
 
     def tearDown(self) -> None:
         return super().tearDown()
