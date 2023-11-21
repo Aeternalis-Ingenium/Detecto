@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 from pandas import DataFrame, testing as pd_testing
-from scipy.stats import genpareto
 
 from src.detecto.models.detectors.interface import Detecto
 from src.detecto.models.detectors.pot import POTDetecto
@@ -119,7 +118,7 @@ class TestPOTDetecto(TestCase):
         expected_anomaly_score_df = DataFrame(
             data={
                 "anomaly_score_df_1_feature_1": [float("inf"), float("inf"), float("inf"), float("inf")],
-                "anomaly_score_df_1_feature_2": [float("inf"), None, 1.2988597467759642, 2.129427676525411],
+                "anomaly_score_df_1_feature_2": [float("inf"), 0.0, 1.2988597467759642, 2.129427676525411],
                 "total_anomaly_score": [float("inf"), float("inf"), float("inf"), float("inf")],
             }
         )
@@ -468,48 +467,48 @@ class TestPOTDetecto(TestCase):
         expected_anomaly_score_df = DataFrame(
             data={
                 "anomaly_score_df_1_feature_1": [
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
                     1.5947881128257808,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
                     float("inf"),
                 ],
                 "anomaly_score_df_1_feature_2": [
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
                     1.0092577188337257,
-                    None,
-                    None,
+                    0.0,
+                    0.0,
                     2.1563458584349675,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
                 ],
                 "total_anomaly_score": [
                     0.0,
@@ -897,48 +896,48 @@ class TestPOTDetecto(TestCase):
         expected_anomaly_score_df = DataFrame(
             data={
                 "anomaly_score_df_1_feature_1": [
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
                     1.5947881128257808,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
                     float("inf"),
                 ],
                 "anomaly_score_df_1_feature_2": [
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
                     1.0092577188337257,
-                    None,
-                    None,
+                    0.0,
+                    0.0,
                     2.1563458584349675,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
                 ],
                 "total_anomaly_score": [
                     0.0,
@@ -990,11 +989,64 @@ class TestPOTDetecto(TestCase):
     def test_evaluate_method(self):
         pass
 
-    def test_set_params_method(self):
-        pass
+    def test_params_attributes(self):
+        expected_params = {
+            0: [
+                {
+                    "anomaly_score_col_1": {
+                        "gpd_params": {
+                            "c": 0.123,
+                            "loc": 0.002,
+                            "scale": 0.001,
+                        },
+                        "gpd_stats": {"p_value": 0.05, "anomaly_score": 20.0},
+                    },
+                },
+                {
+                    "anomaly_score_col_2": {
+                        "gpd_params": {
+                            "c": 0.253,
+                            "loc": 0.005,
+                            "scale": 0.03,
+                        },
+                        "gpd_stats": {"p_value": 0.005, "anomaly_score": 200.0},
+                    },
+                },
+                {
+                    "total_anomaly_score": 220.0,
+                },
+            ]
+        }
+        self.detector.params[0] = []  # type: ignore
 
-    def test_get_params_method(self):
-        pass
+        assert type(self.detector.params) == dict
+        assert len(self.detector.params[0]) == 0  # type: ignore
+
+        self.detector.set_params(
+            feature_name="anomaly_score_col_1",
+            row=0,
+            c=0.123,
+            loc=0.002,
+            scale=0.001,
+            p_value=0.05,
+            anomaly_score=20.0,
+        )
+
+        self.detector.set_params(
+            feature_name="anomaly_score_col_2",
+            row=0,
+            c=0.253,
+            loc=0.005,
+            scale=0.03,
+            p_value=0.005,
+            anomaly_score=200.0,
+        )
+
+        self.detector.set_params(feature_name="total_anomaly_score", row=0, total_anomaly_score_per_row=220.0)
+
+        assert type(self.detector.params) == type(expected_params)
+        assert len(self.detector.params[0]) == len(expected_params[0])  # type: ignore
+        assert self.detector.params[0] == expected_params[0]  # type: ignore
 
     def tearDown(self) -> None:
         return super().tearDown()

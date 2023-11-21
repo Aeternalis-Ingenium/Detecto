@@ -227,24 +227,24 @@ class POTDetecto(Detecto):
                         self.set_params(
                             feature_name=feature_name,
                             row=row,
-                            c=None,
-                            loc=None,
-                            scale=None,
-                            p_value=None,
-                            anomaly_score=None,
+                            c=0.0,
+                            loc=0.0,
+                            scale=0.0,
+                            p_value=0.0,
+                            anomaly_score=0.0,
                         )
-                        anomaly_scores[f"anomaly_score_{feature_name}"].append(None)
+                        anomaly_scores[f"anomaly_score_{feature_name}"].append(0.0)
                 else:
                     self.set_params(
                         feature_name=feature_name,
                         row=row,
-                        c=None,
-                        loc=None,
-                        scale=None,
-                        p_value=None,
-                        anomaly_score=None,
+                        c=0.0,
+                        loc=0.0,
+                        scale=0.0,
+                        p_value=0.0,
+                        anomaly_score=0.0,
                     )
-                    anomaly_scores[f"anomaly_score_{feature_name}"].append(None)
+                    anomaly_scores[f"anomaly_score_{feature_name}"].append(0.0)
             self.set_params(
                 feature_name="total_anomaly_score", row=row, total_anomaly_score_per_row=total_anomaly_score_per_row
             )
