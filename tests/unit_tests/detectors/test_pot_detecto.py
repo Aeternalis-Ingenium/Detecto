@@ -997,7 +997,7 @@ class TestPOTDetecto(TestCase):
                         "gpd_params": {
                             "c": 0.123,
                             "loc": 0.002,
-                            "scale": 0.0,
+                            "scale": 0.001,
                         },
                         "gpd_stats": {"p_value": 0.05, "anomaly_score": 20.0},
                     },
@@ -1027,7 +1027,7 @@ class TestPOTDetecto(TestCase):
             row=0,
             c=0.123,
             loc=0.002,
-            scale=0.0,
+            scale=0.001,
             p_value=0.05,
             anomaly_score=20.0,
         )
