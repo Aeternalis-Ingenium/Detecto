@@ -34,7 +34,7 @@ class TestPOTDetecto(TestCase):
             }
         )
 
-        self.assertIsNone(self.detector.evaluate(dataset=self.df_1, detected=expected_detected_df))
+        self.assertIsNone(obj=self.detector.evaluate(dataset=self.df_1, detected=expected_detected_df))
 
     def test_compute_exceedance_threshold_method(self):
         exceedance_threshold_df = self.detector.compute_exceedance_threshold(dataset=self.df_1, q=0.99)

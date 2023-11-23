@@ -17,19 +17,19 @@ class TestDetectoInterfaceClass(TestCase):
         )
 
     def test_fit(self):
-        self.assertIsNone(self.detector.fit(dataset=self.test_df))
+        self.assertIsNone(obj=self.detector.fit(dataset=self.test_df))
 
     def test_detect(self):
-        self.assertIsNone(self.detector.detect(dataset=self.test_df))
+        self.assertIsNone(obj=self.detector.detect(dataset=self.test_df))
 
     def test_evaluate(self):
-        self.assertIsNone(self.detector.evaluate(dataset=self.test_df))
+        self.assertIsNone(obj=self.detector.evaluate(dataset=self.test_df))
 
     def test_set_params(self):
-        self.assertIsNone(self.detector.set_params())  # type: ignore
+        self.assertIsNone(obj=self.detector.set_params())  # type: ignore
 
     def test_get_params(self):
-        self.assertIsNone(self.detector.params)
+        self.assertIsNone(obj=self.detector.params)
 
     def tearDown(self) -> None:
         return super().tearDown()

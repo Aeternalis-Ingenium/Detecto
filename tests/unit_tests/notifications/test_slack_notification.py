@@ -23,18 +23,18 @@ class TestSlackNotification(TestCase):
         self.assertTrue(expr=str(self.slack_notification) == "Slack Notification Class")
 
     def test_setup_with_wrong_data_type(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(expected_exception=TypeError):
             self.slack_notification.setup(data=self.test_data[0], message=self.test_message)  # type: ignore
 
     def test_setup_with_wrong_data_type_first_nested(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(expected_exception=TypeError):
             self.slack_notification.setup(
                 data=[("date", "2023-10-23T00:00:00.000Z"), ("column", "col_1"), ("anomaly", 2003.214)],  # type: ignore
                 message=self.test_message,
             )
 
     def test_setup_with_wrong_key_name(self):
-        with self.assertRaises(KeyError):
+        with self.assertRaises(expected_exception=KeyError):
             self.slack_notification.setup(  # type: ignore
                 data=[{"date": "2023-10-23T00:00:00.000Z", "col": "col_1", "anomaly_value": 1055.67}],  # type: ignore
                 message=self.test_message,
@@ -54,7 +54,7 @@ class TestSlackNotification(TestCase):
 
         self.slack_notification.setup(data=self.test_data, message=self.test_message)  # type: ignore
 
-        self.assertIsNotNone(self.slack_notification._SlackNotification__payload)  # type: ignore
+        self.assertIsNotNone(obj=self.slack_notification._SlackNotification__payload)  # type: ignore
         self.assertEqual(first=self.slack_notification._SlackNotification__payload, second=expected_payload)  # type: ignore
 
     def test_setup_without_message(self):
@@ -70,7 +70,7 @@ class TestSlackNotification(TestCase):
 
         self.slack_notification.setup(data=self.test_data, message=None)  # type: ignore
 
-        self.assertIsNotNone(self.slack_notification._SlackNotification__payload)  # type: ignore
+        self.assertIsNotNone(obj=self.slack_notification._SlackNotification__payload)  # type: ignore
         self.assertEqual(first=self.slack_notification._SlackNotification__payload, second=expected_payload)  # type: ignore
 
     @patch("src.detecto.models.notifications.slack.client.HTTPSConnection")
@@ -88,7 +88,7 @@ class TestSlackNotification(TestCase):
         mock_connection.close.assert_called_once()
 
     def test_send_without_setup(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(expected_exception=ValueError):
             self.slack_notification.send()
 
     def tearDown(self) -> None:
