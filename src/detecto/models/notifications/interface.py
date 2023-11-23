@@ -11,8 +11,9 @@ class Notification(metaclass=ABCMeta):
             data (_type_): _description_
         """
 
+    @property
     @abstractmethod
-    async def send(self) -> None:
+    def send(self) -> None:
         """_summary_
 
         Args:
