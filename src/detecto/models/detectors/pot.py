@@ -27,6 +27,9 @@ class POTDetecto(Detecto):
 
         # Parameters
             * feature_names (list[int]): A registry of GPD parameters and statistics per row index and feature.
+
+        # Returns
+            * None: Create structure assigned to `__params` attribute.
         """
         for row in range(0, total_rows):
             self.__params[row] = []
@@ -122,6 +125,9 @@ class POTDetecto(Detecto):
                 ],
             }
         ```
+
+        # Returns
+            * None: Add all GPD params and statistics and append it to `__params` attribute.
         """
         feature_name: str = kwargs.get("feature_name")  # type: ignore
         data = (

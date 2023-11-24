@@ -20,6 +20,12 @@ class TestPOTDetecto(TestCase):
             total_rows=self.df_1.shape[0],
         )
 
+    def test_instance_is_abstract_class(self):
+        self.assertIsInstance(obj=self.detector, cls=Detecto)
+
+    def test_string_method(self):
+        self.assertEqual(first=str(self.detector), second="Peak Over Threshold Anomaly Detector")
+
     def test_construct_pot_detecto_successful(self):
         expected_detected_df = DataFrame(
             data={
@@ -28,9 +34,7 @@ class TestPOTDetecto(TestCase):
             }
         )
 
-        assert isinstance(self.detector, Detecto)
-        assert str(self.detector) == "Peak Over Threshold Anomaly Detector"
-        self.assertIsNone(self.detector.evaluate(dataset=self.df_1, detected=expected_detected_df))
+        self.assertIsNone(obj=self.detector.evaluate(dataset=self.df_1, detected=expected_detected_df))
 
     def test_compute_exceedance_threshold_method(self):
         exceedance_threshold_df = self.detector.compute_exceedance_threshold(dataset=self.df_1, q=0.99)
@@ -551,7 +555,7 @@ class TestPOTDetecto(TestCase):
 
         self.detector.compute_anomaly_threshold(dataset=anomaly_score_df, q=0.90)
 
-        assert self.detector.anomaly_threshold == expected_anomaly_threshold
+        self.assertEqual(first=self.detector.anomaly_threshold, second=expected_anomaly_threshold)
 
     def test_detect_method(self):
         expected_anomaly_df = DataFrame(
@@ -980,7 +984,7 @@ class TestPOTDetecto(TestCase):
 
         self.detector.compute_anomaly_threshold(dataset=anomaly_score_df, q=0.90)
 
-        assert self.detector.anomaly_threshold == expected_anomaly_threshold
+        self.assertEqual(first=self.detector.anomaly_threshold, second=expected_anomaly_threshold)
 
         anomaly_df = self.detector.detect(dataset=anomaly_score_df)
 
@@ -1019,8 +1023,8 @@ class TestPOTDetecto(TestCase):
         }
         self.detector.params[0] = []  # type: ignore
 
-        assert type(self.detector.params) == dict
-        assert len(self.detector.params[0]) == 0  # type: ignore
+        self.assertEqual(first=type(self.detector.params), second=dict)
+        self.assertEqual(first=len(self.detector.params[0]), second=0)  # type: ignore
 
         self.detector.set_params(
             feature_name="anomaly_score_col_1",
@@ -1044,9 +1048,9 @@ class TestPOTDetecto(TestCase):
 
         self.detector.set_params(feature_name="total_anomaly_score", row=0, total_anomaly_score_per_row=220.0)
 
-        assert type(self.detector.params) == type(expected_params)
-        assert len(self.detector.params[0]) == len(expected_params[0])  # type: ignore
-        assert self.detector.params[0] == expected_params[0]  # type: ignore
+        self.assertEqual(first=type(self.detector.params), second=type(expected_params))
+        self.assertEqual(first=len(self.detector.params[0]), second=len(expected_params[0]))  # type: ignore
+        self.assertEqual(first=self.detector.params[0], second=expected_params[0])  # type: ignore
 
     def tearDown(self) -> None:
         return super().tearDown()

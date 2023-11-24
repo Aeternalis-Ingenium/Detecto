@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from pandas import DataFrame, read_csv
 
 from src.detecto.models.detectors.interface import Detecto
+from src.detecto.models.notifications.interface import Notification
 from src.detecto.models.timeframes.interface import Timeframe
 
 
@@ -24,6 +27,15 @@ class AbstractDetectoTestModel(Detecto):
 
 class AbstractTimeframeTestModel(Timeframe):
     def set_interval(self, **kwargs: int | float | bool) -> None:
+        pass
+
+
+class AbstractNotificationTestModel(Notification):
+    def setup(self, data: list[dict[str, str | float | int | datetime]], message: str) -> None:
+        pass
+
+    @property
+    def send(self) -> None:
         pass
 
 
