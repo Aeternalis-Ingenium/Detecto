@@ -18,6 +18,13 @@ class TestSlackNotification(TestCase):
 
     def test_instance_is_abstract_class(self):
         self.assertIsInstance(obj=self.slack_notification, cls=Notification)
+        self.assertEqual(first=type(self.slack_notification._SlackNotification__payload), second=str)  # type: ignore
+        self.assertEqual(first=len(self.slack_notification._SlackNotification__payload), second=0)  # type: ignore
+        self.assertEqual(first=self.slack_notification._SlackNotification__payload, second="")  # type: ignore
+        self.assertEqual(first=type(self.slack_notification._SlackNotification__subject), second=str)  # type: ignore
+        self.assertEqual(
+            first=self.slack_notification._SlackNotification__subject, second="🤖 Detecto: Anomaly detected!"  # type: ignore
+        )
 
     def test_string_method(self):
         self.assertTrue(expr=str(self.slack_notification) == "Slack Notification Class")

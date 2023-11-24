@@ -8,7 +8,7 @@ from src.detecto.models.notifications.interface import Notification
 
 class SlackNotification(Notification):
     """
-    Initializes a new instance of SlackNotification.
+    Notification class that setups message for your anomalies and sends them to Slack via webhook.
 
     # Attributes:
         * webhook_url (str): The URL of the Slack webhook used to send notifications.
@@ -20,6 +20,7 @@ class SlackNotification(Notification):
         self.webhook_url = webhook_url
         self.__headers: dict[str, str] = {"Content-Type": "application/json"}
         self.__payload: str = ""
+        self.__subject: str = "🤖 Detecto: Anomaly detected!"
 
     def __format_data(self, data: dict[str, str | float | int | datetime], index: int):
         """
@@ -63,9 +64,9 @@ class SlackNotification(Notification):
             self.__format_data(data=anomaly_data, index=index) for index, anomaly_data in enumerate(data)
         )
         if not message:
-            fmt_message = "🤖 Detecto: Anomaly detected!\n" f"\n\n{fmt_data}"
+            fmt_message = f"{self.__subject}\n" f"\n\n{fmt_data}"
         else:
-            fmt_message = "🤖 Detecto: Anomaly detected!\n" f"\n\n{message}\n" f"\n\n{fmt_data}"
+            fmt_message = f"{self.__subject}\n" f"\n\n{message}\n" f"\n\n{fmt_data}"
         self.__payload = dumps({"text": fmt_message})
 
     @property
@@ -82,10 +83,10 @@ class SlackNotification(Notification):
         if len(self.__payload) == 0:
             raise ValueError("Payload not set. Please call `setup()` method first.")
 
-        parsed_url = urlparse(self.webhook_url)
+        parsed_url = urlparse(url=self.webhook_url)
         connection = client.HTTPSConnection(parsed_url.netloc)
 
-        connection.request("POST", parsed_url.path, body=self.__payload, headers=self.__headers)
+        connection.request(method="POST", url=parsed_url.path, body=self.__payload, headers=self.__headers)
         response = connection.getresponse()
 
         if response.status == 200:
