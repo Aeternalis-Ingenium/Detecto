@@ -1,6 +1,9 @@
 from datetime import datetime
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from smtplib import SMTP
 
-from detecto.models.notifications.interface import Notification
+from src.detecto.models.notifications.interface import Notification
 
 
 class EmailNotification(Notification):
@@ -11,7 +14,7 @@ class EmailNotification(Notification):
         * sender_address (str): The email address from which the email will be sent.
         * password (str): The password or app-specific password for authenticating the email account.
         * recipient_addresses (list[str]): The list of your recipent's email addresses.
-        * smtp_server (str): The SMTP server address for the email provider: smtp.YOUR_EMAIL_PROVIDER.com.
+        * smtp_host (str): The SMTP host address for the email provider: smtp.YOUR_EMAIL_PROVIDER.com.
         * smtp_port (int): The SMTP server port for the email provider, default 587.
         * __payload (str): The payload for the notification message, by default an empty string.
         * __subject (str): The sibject of your email.
@@ -22,29 +25,32 @@ class EmailNotification(Notification):
         sender_address: str,
         password: str,
         recipient_addresses: list[str],
-        smtp_server: str,
+        smtp_host: str,
         smtp_port: int = 587,
     ) -> None:
         self.sender_address = sender_address
         self.password = password
-        self.smtp_server = smtp_server
+        self.smtp_host = smtp_host
         self.smtp_port = smtp_port
         self.recipient_addresses = recipient_addresses
         self.__subject = "🤖 Detecto: Anomaly detected!"
         self.__payload: str = ""
 
-    def __format_anomaly(self, anomaly: dict[str, str | float | int | datetime], index: int) -> str:  # type: ignore
+    def __format_data(self, data: dict[str, str | float | int | datetime], index: int):
         """
-        Formats a single anomaly dictionary into a string for email message formatting.
+        Formats a single anomaly dictionary into a string for Slack message formatting.
 
-        Parameters:
-            anomaly (dict[str, str | float | int | datetime]): A dictionary containing details of an anomaly.
-            index (int): Index of the anomaly in the list, used for numbering in the message.
+        # Parameters:
+            * data (dict[str, str | float | int | datetime]): A dictionary containing details of an anomaly.
+            * index (int): Index of the anomaly in the list, used for numbering in the message.
 
-        Returns:
-            str: Formatted string representing the anomaly.
+        # Returns:
+            * str: Formatted string representing the anomaly.
         """
-        pass
+        date = data["date"]
+        column = data["column"]
+        anomaly = data["anomaly"]
+        return f"{index + 1}. Date: {date} | Column: {column} | Anomaly: {anomaly}"
 
     def setup(self, data: list[dict[str, str | float | int | datetime]], message: str):
         """
@@ -57,6 +63,11 @@ class EmailNotification(Notification):
         Returns:
             None: This method prepares the email content.
         """
+        fmt_data = "\n".join(
+            self.__format_data(data=anomaly_data, index=index) for index, anomaly_data in enumerate(data)
+        )
+        fmt_message = f"{message}\n\n{fmt_data}"
+        self.__payload = fmt_message
         pass
 
     @property
@@ -70,4 +81,24 @@ class EmailNotification(Notification):
         Returns:
             None: Sends notification via sender address and prints the status of the operation.
         """
-        pass
+        if len(self.__payload) == 0:
+            raise ValueError("Payload not set. Please call `setup()` method first.")
+
+        msg = MIMEMultipart()
+        msg["From"] = self.sender_address
+        msg["To"] = ", ".join(self.recipient_addresses)
+        msg["Subject"] = self.__subject
+        msg.attach(MIMEText(self.__payload, "plain"))
+
+        try:
+            server = SMTP(host=self.smtp_host, port=self.smtp_port)
+            server.starttls()
+            server.login(user=self.sender_address, password=self.password)
+            server.send_message(msg=msg, from_addr=self.sender_address, to_addrs=self.recipient_addresses)
+            server.quit()
+            print("Email sent successfully.")
+        except Exception as e:
+            print(f"Failed to send email. Error: {e}")
+
+    def __str__(self):
+        return "Email Notification Class"
