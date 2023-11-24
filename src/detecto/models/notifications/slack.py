@@ -49,6 +49,7 @@ class SlackNotification(Notification):
             fmt_message = "🤖 Detecto: Anomaly detected!\n" f"\n\n{message}\n" f"\n\n{fmt_anomalies}"
         self.__payload = dumps({"text": fmt_message})
 
+    @property
     def send(self):
         """
         Synchronously sends the prepared message to a Slack channel.

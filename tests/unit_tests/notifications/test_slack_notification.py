@@ -82,14 +82,14 @@ class TestSlackNotification(TestCase):
         mock_https_connection.return_value = mock_connection
 
         self.slack_notification.setup(data=self.test_data, message=self.test_message)  # type: ignore
-        self.slack_notification.send()
+        self.slack_notification.send
 
         mock_connection.request.assert_called_once()
         mock_connection.close.assert_called_once()
 
     def test_send_without_setup(self):
         with self.assertRaises(expected_exception=ValueError):
-            self.slack_notification.send()
+            self.slack_notification.send
 
     def tearDown(self) -> None:
         return super().tearDown()
