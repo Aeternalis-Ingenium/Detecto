@@ -125,6 +125,9 @@ class POTDetecto(Detecto):
                 ],
             }
         ```
+
+        # Returns
+            * None: Add all GPD params and statistics and append it to `__params` attribute.
         """
         feature_name: str = kwargs.get("feature_name")  # type: ignore
         data = (

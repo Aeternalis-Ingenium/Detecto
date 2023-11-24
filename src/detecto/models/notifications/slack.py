@@ -7,16 +7,30 @@ from src.detecto.models.notifications.interface import Notification
 
 
 class SlackNotification(Notification):
+    """
+    Initializes a new instance of SlackNotification.
+
+    # Attributes:
+        * webhook_url (str): The URL of the Slack webhook used to send notifications.
+        * __headers (dict[str, str]): The HTTP headers, by default - {"Content-Type": "application/json"}.
+        * __payload (str): The payload for the notification message, by default an empty string.
+    """
+
     def __init__(self, webhook_url: str):
         self.webhook_url = webhook_url
         self.__headers: dict[str, str] = {"Content-Type": "application/json"}
         self.__payload: str = ""
 
-    def __format_anomaly(self, data: dict[str, str | float | int | datetime], index: int):
+    def __format_data(self, data: dict[str, str | float | int | datetime], index: int):
         """
-        Formats a single anomaly dictionary into a string.
-        :param anomaly: A dictionary containing details of an anomaly.
-        :param index: Index of the anomaly in the list.
+        Formats a single anomaly dictionary into a string for Slack message formatting.
+
+        # Parameters:
+            * data (dict[str, str | float | int | datetime]): A dictionary containing details of an anomaly.
+            * index (int): Index of the anomaly in the list, used for numbering in the message.
+
+        # Returns:
+            * str: Formatted string representing the anomaly.
         """
         date = data["date"]
         column = data["column"]
@@ -25,9 +39,14 @@ class SlackNotification(Notification):
 
     def setup(self, data: list[dict[str, str | float | int | datetime]], message: str | None):
         """
-        Prepares the message to be sent.
-        :param data: A list of dictionaries, each containing anomaly details.
-        :param message: A custom message to be included in the notification.
+        Prepares the Slack message with given data and a custom message.
+
+        # Parameters:
+            * data (list[dict[str, str | float | int | datetime]]): A list of dictionaries which represent all the detected anomaly data.
+            * message (str): A custom message to be included in the notification.
+
+        # Returns:
+            * None: Prepares the Slack message payload and assign it to `__payload` attribute.
         """
         if type(data) != list:
             raise TypeError("Data argument must be of type list")
@@ -40,19 +59,25 @@ class SlackNotification(Notification):
                         if key not in ["date", "column", "anomaly"]:
                             raise KeyError("Key needs to be one of these: date, column, anomaly")
 
-        fmt_anomalies = "\n".join(
-            self.__format_anomaly(data=anomaly_data, index=index) for index, anomaly_data in enumerate(data)
+        fmt_data = "\n".join(
+            self.__format_data(data=anomaly_data, index=index) for index, anomaly_data in enumerate(data)
         )
         if not message:
-            fmt_message = "🤖 Detecto: Anomaly detected!\n" f"\n\n{fmt_anomalies}"
+            fmt_message = "🤖 Detecto: Anomaly detected!\n" f"\n\n{fmt_data}"
         else:
-            fmt_message = "🤖 Detecto: Anomaly detected!\n" f"\n\n{message}\n" f"\n\n{fmt_anomalies}"
+            fmt_message = "🤖 Detecto: Anomaly detected!\n" f"\n\n{message}\n" f"\n\n{fmt_data}"
         self.__payload = dumps({"text": fmt_message})
 
     @property
     def send(self):
         """
         Synchronously sends the prepared message to a Slack channel.
+
+        # Parameters:
+            * None
+
+        # Returns:
+            * None: Sends the notification to Slack and does not return anything. It prints the status of the operation.
         """
         if len(self.__payload) == 0:
             raise ValueError("Payload not set. Please call `setup()` method first.")
