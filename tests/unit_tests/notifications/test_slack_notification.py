@@ -40,6 +40,12 @@ class TestSlackNotification(TestCase):
                 message=self.test_message,
             )
 
+    def test_format_data_method(self):
+        expected_fmt_data = "1. Date: 2023-10-23T00:00:00.000Z | Column: col_1 | Anomaly: 2003.214"
+        fmt_data = self.slack_notification._SlackNotification__format_data(data=self.test_data[0], index=0)  # type: ignore
+
+        self.assertEqual(first=fmt_data, second=expected_fmt_data)
+
     def test_setup(self):
         expected_payload = dumps(
             {
