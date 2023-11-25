@@ -153,7 +153,7 @@ class POTDetecto(Detecto):
         )
         self.__params[kwargs.get("row")].append(data)
 
-    def compute_exceedance_threshold(self, dataset: DataFrame, q: float = 0.99) -> DataFrame:
+    def compute_exceedance_threshold(self, dataset: DataFrame, q: float = 0.99) -> None:
         """
         Calculate the exceedance threshold for each feature in the dataset.
 
@@ -164,7 +164,7 @@ class POTDetecto(Detecto):
         # Returns
             * DataFrame: The threshold values for each feature.
         """
-        return dataset.expanding(min_periods=self.timeframe.t0).quantile(q=q).bfill()
+        self.exceedance_threshold_dataset = dataset.expanding(min_periods=self.timeframe.t0).quantile(q=q).bfill()
 
     def extract_exceedance(
         self,
