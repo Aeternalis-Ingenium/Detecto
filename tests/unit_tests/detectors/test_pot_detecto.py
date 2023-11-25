@@ -96,19 +96,19 @@ class TestPOTDetecto(TestCase):
                 ],
             }
         )
-        exceedance_df = self.detector.extract_exceedance(
+        self.detector.extract_exceedance(
             dataset=self.df_1,
             exceedance_threshold_dataset=self.detector.exceedance_threshold_dataset,
             fill_value=0.0,
             clip_lower=0.0,
         )
 
-        pd_testing.assert_frame_equal(left=exceedance_df, right=expected_exceedance_df)
+        pd_testing.assert_frame_equal(left=self.detector.exceedance_dataset, right=expected_exceedance_df)
         pd_testing.assert_series_equal(
-            left=exceedance_df["df_1_feature_1"], right=expected_exceedance_df["df_1_feature_1"]
+            left=self.detector.exceedance_dataset["df_1_feature_1"], right=expected_exceedance_df["df_1_feature_1"]  # type: ignore
         )
         pd_testing.assert_series_equal(
-            left=exceedance_df["df_1_feature_2"], right=expected_exceedance_df["df_1_feature_2"]
+            left=self.detector.exceedance_dataset["df_1_feature_2"], right=expected_exceedance_df["df_1_feature_2"]  # type: ignore
         )
 
     def test_genpareto_fitting_method_with_90_quantile(self):
@@ -138,16 +138,16 @@ class TestPOTDetecto(TestCase):
             left=self.detector.exceedance_threshold_dataset, right=expected_exceedance_threshold_df
         )
 
-        exceedance_data_df = self.detector.extract_exceedance(
+        self.detector.extract_exceedance(
             dataset=self.df_1,
             exceedance_threshold_dataset=self.detector.exceedance_threshold_dataset,
             fill_value=0.0,
             clip_lower=0.0,
         )
 
-        pd_testing.assert_frame_equal(left=exceedance_data_df, right=expected_exceedance_df)
+        pd_testing.assert_frame_equal(left=self.detector.exceedance_dataset, right=expected_exceedance_df)
 
-        anomaly_score_df = self.detector.fit(dataset=self.df_1, exceedance_dataset=exceedance_data_df)
+        anomaly_score_df = self.detector.fit(dataset=self.df_1, exceedance_dataset=self.detector.exceedance_dataset)
 
         pd_testing.assert_frame_equal(left=anomaly_score_df, right=expected_anomaly_score_df)
 
@@ -555,16 +555,16 @@ class TestPOTDetecto(TestCase):
             left=self.detector.exceedance_threshold_dataset, right=expected_exceedance_threshold_df
         )
 
-        exceedance_data_df = self.detector.extract_exceedance(
+        self.detector.extract_exceedance(
             dataset=test_df,
             exceedance_threshold_dataset=self.detector.exceedance_threshold_dataset,
             fill_value=0.0,
             clip_lower=0.0,
         )
 
-        pd_testing.assert_frame_equal(left=exceedance_data_df, right=expected_exceedance_df)
+        pd_testing.assert_frame_equal(left=self.detector.exceedance_dataset, right=expected_exceedance_df)
 
-        anomaly_score_df = self.detector.fit(dataset=test_df, exceedance_dataset=exceedance_data_df)
+        anomaly_score_df = self.detector.fit(dataset=test_df, exceedance_dataset=self.detector.exceedance_dataset)
 
         pd_testing.assert_frame_equal(left=anomaly_score_df, right=expected_anomaly_score_df)
 
@@ -989,16 +989,16 @@ class TestPOTDetecto(TestCase):
             left=self.detector.exceedance_threshold_dataset, right=expected_exceedance_threshold_df
         )
 
-        exceedance_data_df = self.detector.extract_exceedance(
+        self.detector.extract_exceedance(
             dataset=test_df,
             exceedance_threshold_dataset=self.detector.exceedance_threshold_dataset,
             fill_value=0.0,
             clip_lower=0.0,
         )
 
-        pd_testing.assert_frame_equal(left=exceedance_data_df, right=expected_exceedance_df)
+        pd_testing.assert_frame_equal(left=self.detector.exceedance_dataset, right=expected_exceedance_df)
 
-        anomaly_score_df = self.detector.fit(dataset=test_df, exceedance_dataset=exceedance_data_df)
+        anomaly_score_df = self.detector.fit(dataset=test_df, exceedance_dataset=self.detector.exceedance_dataset)
 
         pd_testing.assert_frame_equal(left=anomaly_score_df, right=expected_anomaly_score_df)
 
