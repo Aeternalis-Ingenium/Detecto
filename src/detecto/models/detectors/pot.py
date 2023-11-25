@@ -189,7 +189,7 @@ class POTDetecto(Detecto):
             lower=clip_lower
         )
 
-    def fit(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
+    def fit(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> None:
         """
         Fit the POT model on the dataset and calculate anomaly scores for each feature.
 
@@ -261,7 +261,7 @@ class POTDetecto(Detecto):
                 feature_name="total_anomaly_score", row=row, total_anomaly_score_per_row=total_anomaly_score_per_row
             )
             anomaly_scores["total_anomaly_score"].append(total_anomaly_score_per_row)
-        return DataFrame(data=anomaly_scores)
+        self.anomaly_score_dataset = DataFrame(data=anomaly_scores)
 
     def compute_anomaly_threshold(self, dataset: DataFrame, q: float = 0.80):
         clean_dataset = dataset[
