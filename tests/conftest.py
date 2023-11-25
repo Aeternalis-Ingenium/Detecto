@@ -8,10 +8,10 @@ from src.detecto.models.timeframes.interface import Timeframe
 
 
 class AbstractDetectoTestModel(Detecto):
-    def fit(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
+    def fit(self, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
         pass
 
-    def detect(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
+    def detect(self, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
         pass
 
     def evaluate(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
