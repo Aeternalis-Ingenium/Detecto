@@ -37,7 +37,7 @@ class TestPOTDetecto(TestCase):
         self.assertIsNone(obj=self.detector.evaluate(dataset=self.df_1, detected=expected_detected_df))
 
     def test_compute_exceedance_threshold_method(self):
-        exceedance_threshold_df = self.detector.compute_exceedance_threshold(dataset=self.df_1, q=0.99)
+        self.detector.compute_exceedance_threshold(dataset=self.df_1, q=0.99)
 
         expected_exceedance_threshold = DataFrame(
             data={
@@ -46,12 +46,14 @@ class TestPOTDetecto(TestCase):
             }
         )
 
-        pd_testing.assert_frame_equal(left=exceedance_threshold_df, right=expected_exceedance_threshold)
-        pd_testing.assert_series_equal(
-            left=exceedance_threshold_df["df_1_feature_1"], right=expected_exceedance_threshold["df_1_feature_1"]  # type: ignore
+        pd_testing.assert_frame_equal(
+            left=self.detector.exceedance_threshold_dataset, right=expected_exceedance_threshold
         )
         pd_testing.assert_series_equal(
-            left=exceedance_threshold_df["df_1_feature_2"], right=expected_exceedance_threshold["df_1_feature_2"]  # type: ignore
+            left=self.detector.exceedance_threshold_dataset["df_1_feature_1"], right=expected_exceedance_threshold["df_1_feature_1"]  # type: ignore
+        )
+        pd_testing.assert_series_equal(
+            left=self.detector.exceedance_threshold_dataset["df_1_feature_2"], right=expected_exceedance_threshold["df_1_feature_2"]  # type: ignore
         )
 
     def test_extract_exeedance_method(self):
@@ -62,9 +64,9 @@ class TestPOTDetecto(TestCase):
             }
         )
 
-        exceedance_threshold_df = self.detector.compute_exceedance_threshold(dataset=self.df_1, q=0.99)
+        self.detector.compute_exceedance_threshold(dataset=self.df_1, q=0.99)
 
-        pd_testing.assert_frame_equal(left=exceedance_threshold_df, right=expected_threshold_df)
+        pd_testing.assert_frame_equal(left=self.detector.exceedance_threshold_dataset, right=expected_threshold_df)
 
         expected_exceedance_df = DataFrame(
             data={
@@ -95,7 +97,10 @@ class TestPOTDetecto(TestCase):
             }
         )
         exceedance_df = self.detector.extract_exceedance(
-            dataset=self.df_1, exceedance_threshold_dataset=exceedance_threshold_df, fill_value=0.0, clip_lower=0.0
+            dataset=self.df_1,
+            exceedance_threshold_dataset=self.detector.exceedance_threshold_dataset,
+            fill_value=0.0,
+            clip_lower=0.0,
         )
 
         pd_testing.assert_frame_equal(left=exceedance_df, right=expected_exceedance_df)
@@ -127,12 +132,17 @@ class TestPOTDetecto(TestCase):
             }
         )
 
-        exceedance_threshold_df = self.detector.compute_exceedance_threshold(dataset=self.df_1, q=0.90)
+        self.detector.compute_exceedance_threshold(dataset=self.df_1, q=0.90)
 
-        pd_testing.assert_frame_equal(left=exceedance_threshold_df, right=expected_exceedance_threshold_df)
+        pd_testing.assert_frame_equal(
+            left=self.detector.exceedance_threshold_dataset, right=expected_exceedance_threshold_df
+        )
 
         exceedance_data_df = self.detector.extract_exceedance(
-            dataset=self.df_1, exceedance_threshold_dataset=exceedance_threshold_df, fill_value=0.0, clip_lower=0.0
+            dataset=self.df_1,
+            exceedance_threshold_dataset=self.detector.exceedance_threshold_dataset,
+            fill_value=0.0,
+            clip_lower=0.0,
         )
 
         pd_testing.assert_frame_equal(left=exceedance_data_df, right=expected_exceedance_df)
@@ -539,12 +549,17 @@ class TestPOTDetecto(TestCase):
             }
         )
 
-        exceedance_threshold_df = self.detector.compute_exceedance_threshold(dataset=test_df, q=0.90)
+        self.detector.compute_exceedance_threshold(dataset=test_df, q=0.90)
 
-        pd_testing.assert_frame_equal(left=exceedance_threshold_df, right=expected_exceedance_threshold_df)
+        pd_testing.assert_frame_equal(
+            left=self.detector.exceedance_threshold_dataset, right=expected_exceedance_threshold_df
+        )
 
         exceedance_data_df = self.detector.extract_exceedance(
-            dataset=test_df, exceedance_threshold_dataset=exceedance_threshold_df, fill_value=0.0, clip_lower=0.0
+            dataset=test_df,
+            exceedance_threshold_dataset=self.detector.exceedance_threshold_dataset,
+            fill_value=0.0,
+            clip_lower=0.0,
         )
 
         pd_testing.assert_frame_equal(left=exceedance_data_df, right=expected_exceedance_df)
@@ -968,12 +983,17 @@ class TestPOTDetecto(TestCase):
             }
         )
 
-        exceedance_threshold_df = self.detector.compute_exceedance_threshold(dataset=test_df, q=0.90)
+        self.detector.compute_exceedance_threshold(dataset=test_df, q=0.90)
 
-        pd_testing.assert_frame_equal(left=exceedance_threshold_df, right=expected_exceedance_threshold_df)
+        pd_testing.assert_frame_equal(
+            left=self.detector.exceedance_threshold_dataset, right=expected_exceedance_threshold_df
+        )
 
         exceedance_data_df = self.detector.extract_exceedance(
-            dataset=test_df, exceedance_threshold_dataset=exceedance_threshold_df, fill_value=0.0, clip_lower=0.0
+            dataset=test_df,
+            exceedance_threshold_dataset=self.detector.exceedance_threshold_dataset,
+            fill_value=0.0,
+            clip_lower=0.0,
         )
 
         pd_testing.assert_frame_equal(left=exceedance_data_df, right=expected_exceedance_df)
