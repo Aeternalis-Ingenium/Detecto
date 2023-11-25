@@ -1006,9 +1006,9 @@ class TestPOTDetecto(TestCase):
 
         self.assertEqual(first=self.detector.anomaly_threshold, second=expected_anomaly_threshold)
 
-        anomaly_df = self.detector.detect(dataset=self.detector.anomaly_score_dataset)
+        self.detector.detect(dataset=self.detector.anomaly_score_dataset)
 
-        pd_testing.assert_frame_equal(left=anomaly_df, right=expected_anomaly_df)
+        pd_testing.assert_frame_equal(left=self.detector.anomaly_dataset, right=expected_anomaly_df)
 
     def test_evaluate_method(self):
         pass
