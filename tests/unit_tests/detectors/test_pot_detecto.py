@@ -147,9 +147,9 @@ class TestPOTDetecto(TestCase):
 
         pd_testing.assert_frame_equal(left=self.detector.exceedance_dataset, right=expected_exceedance_df)
 
-        anomaly_score_df = self.detector.fit(dataset=self.df_1, exceedance_dataset=self.detector.exceedance_dataset)
+        self.detector.fit(dataset=self.df_1, exceedance_dataset=self.detector.exceedance_dataset)
 
-        pd_testing.assert_frame_equal(left=anomaly_score_df, right=expected_anomaly_score_df)
+        pd_testing.assert_frame_equal(left=self.detector.anomaly_score_dataset, right=expected_anomaly_score_df)
 
     def test_compute_anomaly_threshold_method(self):
         expected_anomaly_threshold = 2.04403430931313
@@ -564,11 +564,11 @@ class TestPOTDetecto(TestCase):
 
         pd_testing.assert_frame_equal(left=self.detector.exceedance_dataset, right=expected_exceedance_df)
 
-        anomaly_score_df = self.detector.fit(dataset=test_df, exceedance_dataset=self.detector.exceedance_dataset)
+        self.detector.fit(dataset=test_df, exceedance_dataset=self.detector.exceedance_dataset)
 
-        pd_testing.assert_frame_equal(left=anomaly_score_df, right=expected_anomaly_score_df)
+        pd_testing.assert_frame_equal(left=self.detector.anomaly_score_dataset, right=expected_anomaly_score_df)
 
-        self.detector.compute_anomaly_threshold(dataset=anomaly_score_df, q=0.90)
+        self.detector.compute_anomaly_threshold(dataset=self.detector.anomaly_score_dataset, q=0.90)
 
         self.assertEqual(first=self.detector.anomaly_threshold, second=expected_anomaly_threshold)
 
@@ -998,15 +998,15 @@ class TestPOTDetecto(TestCase):
 
         pd_testing.assert_frame_equal(left=self.detector.exceedance_dataset, right=expected_exceedance_df)
 
-        anomaly_score_df = self.detector.fit(dataset=test_df, exceedance_dataset=self.detector.exceedance_dataset)
+        self.detector.fit(dataset=test_df, exceedance_dataset=self.detector.exceedance_dataset)
 
-        pd_testing.assert_frame_equal(left=anomaly_score_df, right=expected_anomaly_score_df)
+        pd_testing.assert_frame_equal(left=self.detector.anomaly_score_dataset, right=expected_anomaly_score_df)
 
-        self.detector.compute_anomaly_threshold(dataset=anomaly_score_df, q=0.90)
+        self.detector.compute_anomaly_threshold(dataset=self.detector.anomaly_score_dataset, q=0.90)
 
         self.assertEqual(first=self.detector.anomaly_threshold, second=expected_anomaly_threshold)
 
-        anomaly_df = self.detector.detect(dataset=anomaly_score_df)
+        anomaly_df = self.detector.detect(dataset=self.detector.anomaly_score_dataset)
 
         pd_testing.assert_frame_equal(left=anomaly_df, right=expected_anomaly_df)
 
