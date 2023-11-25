@@ -5,27 +5,27 @@ from pandas import DataFrame
 
 class Detecto(metaclass=ABCMeta):
     @abstractmethod
-    def fit(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
+    def fit(self, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
         """
         Train the anomaly detection model using the provided data.
 
         Parameters:
-        - dataset (DataFrame or array-like): Input data for training.
+        * kwargs (DataFrame | list | str | int | float | None): The parameters depend on the detection method.
 
         Returns:
-        - None
+        * None: The result is assigned to the class attribute.
         """
 
     @abstractmethod
-    def detect(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
+    def detect(self, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
         """
         Predict if the provided data points are anomalies based on the trained model.
 
         Parameters:
-        - dataset (DataFrame or array-like): Data for which predictions are to be made.
+        * kwargs (DataFrame | list | str | int | float | None): The parameters depend on the detection method.
 
         Returns:
-        - predictions (DataFrame): Binary labels indicating anomalies (1 for anomaly, 0 otherwise).
+        * None: The result is assigned to the class attribute.
         """
 
     @abstractmethod
@@ -34,11 +34,11 @@ class Detecto(metaclass=ABCMeta):
         Evaluate the performance of the anomaly detection model based on true and predicted labels.
 
         Parameters:
-        - dataset (DataFrame or array-like): Data for which predictions are to be made.
-        - detected (DataFrame | array-like): Detected labels from the model.
+        * dataset (DataFrame): Data for which predictions are to be made.
+        * kwargs (DataFrame | list | str | int | float | None): The parameters depend on the detection method.
 
         Returns:
-        - metrics (DataFrame): Performance metrics.
+        * None: The result is assigned to the class attribute.
         """
 
     @property
@@ -48,7 +48,7 @@ class Detecto(metaclass=ABCMeta):
         Retrieve the parameters of the anomaly detection model.
 
         Returns:
-        - params (dict[str | int, str | int | float | None | dict[str | int, str | int | float | None]]): Current parameters of the model.
+        * (dict[str | int, str | int | float | None | dict[str | int, str | int | float | None]]): Current parameters of the model.
         """
 
     @abstractmethod
@@ -57,8 +57,8 @@ class Detecto(metaclass=ABCMeta):
         Set the parameters for the anomaly detection model.
 
         Parameters:
-        - **kwargs (dict[str, str | int | float | None]): Parameters to be set for the model.
+        * **kwargs (dict[str, str | int | float | None]): Parameters to be recorded from the model fitting.
 
         Returns:
-        - None
+        * None: The result is assigned to the class private attribute `__params`.
         """
