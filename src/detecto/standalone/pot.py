@@ -1,3 +1,4 @@
+from numpy import quantile
 from pandas import DataFrame
 from scipy.stats import genpareto
 
@@ -248,3 +249,17 @@ def fit(
         )
         anomaly_scores["total_anomaly_score"].append(total_anomaly_score_per_row)
     return (gpd_params, DataFrame(data=anomaly_scores))
+
+
+def compute_anomaly_threshold(dataset: DataFrame, total_anomaly_score_column: str, t1: int, q: float = 0.80) -> float:
+    clean_dataset = dataset[
+        (dataset[total_anomaly_score_column] > 0) & (dataset[total_anomaly_score_column] != float("inf"))
+    ]
+
+    if len(clean_dataset) == 0:
+        raise ValueError("There are no total anomaly scores per row > 0")
+
+    return quantile(
+        a=clean_dataset.iloc[:t1][total_anomaly_score_column].to_list(),
+        q=q,
+    )
