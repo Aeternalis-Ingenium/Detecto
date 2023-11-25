@@ -39,7 +39,7 @@ def extract_pot_data(
     return dataset.subtract(pot_threshold_dataset, fill_value=fill_value).clip(lower=clip_lower)
 
 
-def __set_params_structure(total_rows: int) -> dict[int, list]:
+def __set_gpd_params_structure(total_rows: int) -> dict[int, list]:
     """
     Initialize the parameter structure for storing model parameters.
 
@@ -57,7 +57,7 @@ def __set_params_structure(total_rows: int) -> dict[int, list]:
     return params
 
 
-def set_params(
+def set_gpd_params(
     params: dict[int, list],
     feature_name: str,
     row: int,
@@ -169,7 +169,7 @@ def set_params(
     params[row].append(data)
 
 
-def fit(
+def fit_pot_data(
     dataset: DataFrame, exceedance_dataset: DataFrame, t0: int
 ) -> tuple[dict[int, list[dict[str, dict[str, float] | float]]], DataFrame]:
     """
@@ -187,7 +187,7 @@ def fit(
     anomaly_scores["total_anomaly_score"] = []
     t1_t2_exceedances = exceedance_dataset.iloc[t0:]  # type: ignore
 
-    gpd_params = __set_params_structure(total_rows=t1_t2_exceedances.shape[0])
+    gpd_params = __set_gpd_params_structure(total_rows=t1_t2_exceedances.shape[0])
 
     for row in range(0, t1_t2_exceedances.shape[0]):
         exceedances_for_learning = exceedance_dataset.iloc[: t0 + row]  # type: ignore
@@ -206,7 +206,7 @@ def fit(
                     )
                     inverted_p_value = 1 / p_value if p_value > 0.0 else float("inf")
                     total_anomaly_score_per_row += inverted_p_value
-                    set_params(
+                    set_gpd_params(
                         params=gpd_params,
                         feature_name=feature_name,
                         row=row,
@@ -218,7 +218,7 @@ def fit(
                     )
                     anomaly_scores[f"anomaly_score_{feature_name}"].append(inverted_p_value)
                 else:
-                    set_params(
+                    set_gpd_params(
                         params=gpd_params,
                         feature_name=feature_name,
                         row=row,
@@ -230,7 +230,7 @@ def fit(
                     )
                     anomaly_scores[f"anomaly_score_{feature_name}"].append(0.0)
             else:
-                set_params(
+                set_gpd_params(
                     params=gpd_params,
                     feature_name=feature_name,
                     row=row,
@@ -241,7 +241,7 @@ def fit(
                     anomaly_score=0.0,
                 )
                 anomaly_scores[f"anomaly_score_{feature_name}"].append(0.0)
-        set_params(
+        set_gpd_params(
             params=gpd_params,
             feature_name="total_anomaly_score",
             row=row,
@@ -251,7 +251,9 @@ def fit(
     return (gpd_params, DataFrame(data=anomaly_scores))
 
 
-def compute_anomaly_threshold(dataset: DataFrame, total_anomaly_score_column: str, t1: int, q: float = 0.80) -> float:
+def compute_extreme_anomaly_threshold(
+    dataset: DataFrame, total_anomaly_score_column: str, t1: int, q: float = 0.80
+) -> float:
     clean_dataset = dataset[
         (dataset[total_anomaly_score_column] > 0) & (dataset[total_anomaly_score_column] != float("inf"))
     ]
