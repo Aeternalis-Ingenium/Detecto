@@ -263,3 +263,15 @@ def compute_anomaly_threshold(dataset: DataFrame, total_anomaly_score_column: st
         a=clean_dataset.iloc[:t1][total_anomaly_score_column].to_list(),
         q=q,
     )
+
+
+def detect_extreme_anomaly(
+    dataset: DataFrame, total_anomaly_score_column: str, t1: int, anomaly_threshold: float
+) -> DataFrame:
+    anomaly_data = {}
+    t2_dataset = dataset.iloc[t1:]
+    anomaly_data["is_anomaly"] = (
+        t2_dataset[total_anomaly_score_column].apply(lambda x: x > anomaly_threshold).to_list()
+    )
+
+    return DataFrame(data=anomaly_data)
