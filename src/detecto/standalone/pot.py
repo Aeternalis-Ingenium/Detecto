@@ -166,3 +166,85 @@ def set_params(
         }
     )
     params[row].append(data)
+
+
+def fit(
+    dataset: DataFrame, exceedance_dataset: DataFrame, t0: int
+) -> tuple[dict[int, list[dict[str, dict[str, float] | float]]], DataFrame]:
+    """
+    Fit the POT model on the dataset and calculate anomaly scores for each feature.
+
+    # Parameters
+        * dataset (DataFrame): The dataset on which the POT model is to be fitted.
+        * kwargs:
+            * exceedance_dataset (DataFrame): The dataset containing exceedance values.
+
+    # Returns
+        * DataFrame: Anomaly scores for each feature in the dataset.
+    """
+    anomaly_scores = dataset.drop(dataset.index).add_prefix("anomaly_score_").to_dict(orient="list")
+    anomaly_scores["total_anomaly_score"] = []
+    t1_t2_exceedances = exceedance_dataset.iloc[t0:]  # type: ignore
+
+    gpd_params = __set_params_structure(total_rows=t1_t2_exceedances.shape[0])
+
+    for row in range(0, t1_t2_exceedances.shape[0]):
+        exceedances_for_learning = exceedance_dataset.iloc[: t0 + row]  # type: ignore
+        exceedances_of_interest = t1_t2_exceedances.iloc[[row]]
+        total_anomaly_score_per_row = 0.0
+
+        for feature_name in t1_t2_exceedances.columns:
+            exceedances_for_fitting: list[float | None] = exceedances_for_learning[feature_name][
+                exceedances_for_learning[feature_name] > 0.0
+            ].to_list()
+            if exceedances_of_interest[feature_name].iloc[0] > 0:
+                if len(exceedances_for_fitting) > 0:
+                    (c, loc, scale) = genpareto.fit(data=exceedances_for_fitting, floc=0)
+                    p_value: float = genpareto.sf(
+                        x=exceedances_of_interest[feature_name].iloc[0], c=c, loc=loc, scale=scale
+                    )
+                    inverted_p_value = 1 / p_value if p_value > 0.0 else float("inf")
+                    total_anomaly_score_per_row += inverted_p_value
+                    set_params(
+                        params=gpd_params,
+                        feature_name=feature_name,
+                        row=row,
+                        c=c,
+                        loc=loc,
+                        scale=scale,
+                        p_value=p_value,
+                        anomaly_score=inverted_p_value,
+                    )
+                    anomaly_scores[f"anomaly_score_{feature_name}"].append(inverted_p_value)
+                else:
+                    set_params(
+                        params=gpd_params,
+                        feature_name=feature_name,
+                        row=row,
+                        c=0.0,
+                        loc=0.0,
+                        scale=0.0,
+                        p_value=0.0,
+                        anomaly_score=0.0,
+                    )
+                    anomaly_scores[f"anomaly_score_{feature_name}"].append(0.0)
+            else:
+                set_params(
+                    params=gpd_params,
+                    feature_name=feature_name,
+                    row=row,
+                    c=0.0,
+                    loc=0.0,
+                    scale=0.0,
+                    p_value=0.0,
+                    anomaly_score=0.0,
+                )
+                anomaly_scores[f"anomaly_score_{feature_name}"].append(0.0)
+        set_params(
+            params=gpd_params,
+            feature_name="total_anomaly_score",
+            row=row,
+            anomaly_score=total_anomaly_score_per_row,
+        )
+        anomaly_scores["total_anomaly_score"].append(total_anomaly_score_per_row)
+    return (gpd_params, DataFrame(data=anomaly_scores))
