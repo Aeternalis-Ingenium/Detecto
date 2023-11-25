@@ -170,7 +170,7 @@ def set_gpd_params(
 
 
 def fit_pot_data(
-    dataset: DataFrame, exceedance_dataset: DataFrame, t0: int
+    dataset: DataFrame, pot_dataset: DataFrame, t0: int
 ) -> tuple[dict[int, list[dict[str, dict[str, float] | float]]], DataFrame]:
     """
     Fit the POT model on the dataset and calculate anomaly scores for each feature.
@@ -185,24 +185,24 @@ def fit_pot_data(
     """
     anomaly_scores = dataset.drop(dataset.index).add_prefix("anomaly_score_").to_dict(orient="list")
     anomaly_scores["total_anomaly_score"] = []
-    t1_t2_exceedances = exceedance_dataset.iloc[t0:]  # type: ignore
+    t1_t2_pot_data = pot_dataset.iloc[t0:]  # type: ignore
 
-    gpd_params = __set_gpd_params_structure(total_rows=t1_t2_exceedances.shape[0])
+    gpd_params = __set_gpd_params_structure(total_rows=t1_t2_pot_data.shape[0])
 
-    for row in range(0, t1_t2_exceedances.shape[0]):
-        exceedances_for_learning = exceedance_dataset.iloc[: t0 + row]  # type: ignore
-        exceedances_of_interest = t1_t2_exceedances.iloc[[row]]
+    for row in range(0, t1_t2_pot_data.shape[0]):
+        pot_data_for_learning = pot_dataset.iloc[: t0 + row]  # type: ignore
+        pot_data_of_interest = t1_t2_pot_data.iloc[[row]]
         total_anomaly_score_per_row = 0.0
 
-        for feature_name in t1_t2_exceedances.columns:
-            exceedances_for_fitting: list[float | None] = exceedances_for_learning[feature_name][
-                exceedances_for_learning[feature_name] > 0.0
+        for feature_name in t1_t2_pot_data.columns:
+            pot_data_for_fitting: list[float | None] = pot_data_for_learning[feature_name][
+                pot_data_for_learning[feature_name] > 0.0
             ].to_list()
-            if exceedances_of_interest[feature_name].iloc[0] > 0:
-                if len(exceedances_for_fitting) > 0:
-                    (c, loc, scale) = genpareto.fit(data=exceedances_for_fitting, floc=0)
+            if pot_data_of_interest[feature_name].iloc[0] > 0:
+                if len(pot_data_for_fitting) > 0:
+                    (c, loc, scale) = genpareto.fit(data=pot_data_for_fitting, floc=0)
                     p_value: float = genpareto.sf(
-                        x=exceedances_of_interest[feature_name].iloc[0], c=c, loc=loc, scale=scale
+                        x=pot_data_of_interest[feature_name].iloc[0], c=c, loc=loc, scale=scale
                     )
                     inverted_p_value = 1 / p_value if p_value > 0.0 else float("inf")
                     total_anomaly_score_per_row += inverted_p_value
