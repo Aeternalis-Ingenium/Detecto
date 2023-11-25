@@ -164,12 +164,17 @@ class POTDetecto(Detecto):
         # Returns
             * DataFrame: The threshold values for each feature.
         """
+        if type(dataset) != DataFrame:
+            raise ValueError("The `dataset` parameter needs to be a Pandas DataFrame!")
+
+        if not self.timeframe.t0:
+            raise ValueError("The `t0` period is not set! Call `timeframe.set_interval()` first!")
+
         try:
             self.exceedance_threshold_dataset = dataset.expanding(min_periods=self.timeframe.t0).quantile(q=q).bfill()
-        except Exception:
-            raise ValueError(
-                "Either the parameter `dataset` is not valid DataFrame or you need to call `timeframe.set_interval()` first!"
-            )
+        except Exception as e:
+            print(e)
+            raise
 
     def extract_exceedance(
         self,
@@ -189,14 +194,21 @@ class POTDetecto(Detecto):
         # Returns
             * DataFrame: The dataset with values exceeding the thresholds.
         """
+        if type(dataset) != DataFrame:
+            raise ValueError("The `dataset` parameter needs to be a Pandas DataFrame!")
+
+        if not self.exceedance_threshold_dataset:
+            raise ValueError(
+                "The `exceedance_threshold_dataset` is not set! Call `compute_exceedance_threshold()` first!"
+            )
+
         try:
             self.exceedance_dataset = dataset.subtract(self.exceedance_threshold_dataset, fill_value=fill_value).clip(
                 lower=clip_lower
             )
-        except Exception:
-            raise ValueError(
-                "Either the parameter `dataset` is not valid DataFrame or you need to call `compute_exceedance_threshold()` first!"
-            )
+        except Exception as e:
+            print(e)
+            raise
 
     def fit(self, **kwargs: DataFrame | list | str | int | float | None) -> None:
         """
@@ -209,10 +221,13 @@ class POTDetecto(Detecto):
         # Returns
             * DataFrame: Anomaly scores for each feature in the dataset.
         """
-        try:
-            dataset: DataFrame = kwargs.get("dataset")
-        except Exception as e:
+        dataset: DataFrame = kwargs.get("dataset", None)
+
+        if not dataset:
             raise ValueError("The `dataset` parameter can't be None. Please assign your original dataset!")
+
+        if type(dataset) != DataFrame:
+            raise ValueError("The `dataset` parameter needs to be a Pandas DataFrame!")
 
         anomaly_scores = dataset.drop(dataset.index).add_prefix("anomaly_score_").to_dict(orient="list")
         anomaly_scores["total_anomaly_score"] = []
@@ -276,6 +291,9 @@ class POTDetecto(Detecto):
         self.anomaly_score_dataset = DataFrame(data=anomaly_scores)
 
     def compute_anomaly_threshold(self, q: float = 0.80):
+        if not self.anomaly_score_dataset:
+            raise ValueError("`anomaly_score_dataset` is still None. Need to call `.fit()` first!")
+
         try:
             filtered_dataset: DataFrame = (
                 self.anomaly_score_dataset[  # type: ignore
@@ -285,8 +303,9 @@ class POTDetecto(Detecto):
                 .iloc[: self.timeframe.t1]["total_anomaly_score"]
                 .to_list()
             )
-        except Exception:
-            raise ValueError("`anomaly_score_dataset` is still None. Need to call `.fit()` first!")
+        except Exception as e:
+            print(e)
+            raise
 
         if len(filtered_dataset) == 0:
             raise ValueError("There are no total anomaly scores per row > 0")
@@ -297,18 +316,22 @@ class POTDetecto(Detecto):
         )
 
     def detect(self, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
-        anomaly_data = {}
-        try:
-            t2_dataset: DataFrame = self.anomaly_score_dataset.iloc[self.timeframe.t1 :]  # type: ignore
-        except Exception:
+        if not self.anomaly_score_dataset:
             raise ValueError("`anomaly_score_dataset` is still None. Need to call `.fit()` first!")
 
         if not self.anomaly_threshold:
             raise ValueError("`anomaly_threshold` is not set yet. Need to call `compute_anomaly_threshold()` first!")
 
-        anomaly_data["is_anomaly"] = (
-            t2_dataset["total_anomaly_score"].apply(lambda x: x > self.anomaly_threshold).to_list()
-        )
+        anomaly_data = {}
+
+        try:
+            t2_dataset: DataFrame = self.anomaly_score_dataset.iloc[self.timeframe.t1 :]  # type: ignore
+            anomaly_data["is_anomaly"] = (
+                t2_dataset["total_anomaly_score"].apply(lambda x: x > self.anomaly_threshold).to_list()
+            )
+        except Exception as e:
+            print(e)
+            raise
 
         self.anomaly_dataset = DataFrame(data=anomaly_data)
 
