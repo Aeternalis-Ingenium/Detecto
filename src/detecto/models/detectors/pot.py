@@ -172,7 +172,7 @@ class POTDetecto(Detecto):
         exceedance_threshold_dataset: DataFrame,
         fill_value: float | None = 0.0,
         clip_lower: float | None = 0.0,
-    ) -> DataFrame:
+    ) -> None:
         """
         Extract values from the dataset that exceed the threshold values.
 
@@ -185,7 +185,9 @@ class POTDetecto(Detecto):
         # Returns
             * DataFrame: The dataset with values exceeding the thresholds.
         """
-        return dataset.subtract(exceedance_threshold_dataset, fill_value=fill_value).clip(lower=clip_lower)
+        self.exceedance_dataset = dataset.subtract(exceedance_threshold_dataset, fill_value=fill_value).clip(
+            lower=clip_lower
+        )
 
     def fit(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
         """
