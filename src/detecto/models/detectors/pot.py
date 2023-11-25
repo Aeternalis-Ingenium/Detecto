@@ -197,7 +197,7 @@ class POTDetecto(Detecto):
         if type(dataset) != DataFrame:
             raise ValueError("The `dataset` parameter needs to be a Pandas DataFrame!")
 
-        if not self.exceedance_threshold_dataset:
+        if type(self.exceedance_threshold_dataset) == None:
             raise ValueError(
                 "The `exceedance_threshold_dataset` is not set! Call `compute_exceedance_threshold()` first!"
             )
@@ -223,10 +223,9 @@ class POTDetecto(Detecto):
         """
         dataset: DataFrame = kwargs.get("dataset", None)
 
-        if not dataset:
+        if type(dataset) == None:
             raise ValueError("The `dataset` parameter can't be None. Please assign your original dataset!")
-
-        if type(dataset) != DataFrame:
+        elif type(dataset) != DataFrame:
             raise ValueError("The `dataset` parameter needs to be a Pandas DataFrame!")
 
         anomaly_scores = dataset.drop(dataset.index).add_prefix("anomaly_score_").to_dict(orient="list")
@@ -291,11 +290,11 @@ class POTDetecto(Detecto):
         self.anomaly_score_dataset = DataFrame(data=anomaly_scores)
 
     def compute_anomaly_threshold(self, q: float = 0.80):
-        if not self.anomaly_score_dataset:
+        if type(self.anomaly_score_dataset) == None:
             raise ValueError("`anomaly_score_dataset` is still None. Need to call `.fit()` first!")
 
         try:
-            filtered_dataset: DataFrame = (
+            anomaly_scores = (
                 self.anomaly_score_dataset[  # type: ignore
                     (self.anomaly_score_dataset["total_anomaly_score"] > 0)  # type: ignore
                     & (self.anomaly_score_dataset["total_anomaly_score"] != float("inf"))  # type: ignore
@@ -307,19 +306,19 @@ class POTDetecto(Detecto):
             print(e)
             raise
 
-        if len(filtered_dataset) == 0:
+        if len(anomaly_scores) == 0:
             raise ValueError("There are no total anomaly scores per row > 0")
 
         self.anomaly_threshold = quantile(
-            a=filtered_dataset,
+            a=anomaly_scores,
             q=q,
         )
 
     def detect(self, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
-        if not self.anomaly_score_dataset:
+        if type(self.anomaly_score_dataset) == None:
             raise ValueError("`anomaly_score_dataset` is still None. Need to call `.fit()` first!")
 
-        if not self.anomaly_threshold:
+        if type(self.anomaly_threshold) == None:
             raise ValueError("`anomaly_threshold` is not set yet. Need to call `compute_anomaly_threshold()` first!")
 
         anomaly_data = {}
