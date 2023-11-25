@@ -164,12 +164,16 @@ class POTDetecto(Detecto):
         # Returns
             * DataFrame: The threshold values for each feature.
         """
-        self.exceedance_threshold_dataset = dataset.expanding(min_periods=self.timeframe.t0).quantile(q=q).bfill()
+        try:
+            self.exceedance_threshold_dataset = dataset.expanding(min_periods=self.timeframe.t0).quantile(q=q).bfill()
+        except Exception:
+            raise ValueError(
+                "Either the parameter `dataset` is not valid DataFrame or you need to call `timeframe.set_interval()` first!"
+            )
 
     def extract_exceedance(
         self,
         dataset: DataFrame,
-        exceedance_threshold_dataset: DataFrame,
         fill_value: float | None = 0.0,
         clip_lower: float | None = 0.0,
     ) -> None:
@@ -185,31 +189,39 @@ class POTDetecto(Detecto):
         # Returns
             * DataFrame: The dataset with values exceeding the thresholds.
         """
-        self.exceedance_dataset = dataset.subtract(exceedance_threshold_dataset, fill_value=fill_value).clip(
-            lower=clip_lower
-        )
+        try:
+            self.exceedance_dataset = dataset.subtract(self.exceedance_threshold_dataset, fill_value=fill_value).clip(
+                lower=clip_lower
+            )
+        except Exception:
+            raise ValueError(
+                "Either the parameter `dataset` is not valid DataFrame or you need to call `compute_exceedance_threshold()` first!"
+            )
 
-    def fit(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> None:
+    def fit(self, **kwargs: DataFrame | list | str | int | float | None) -> None:
         """
         Fit the POT model on the dataset and calculate anomaly scores for each feature.
 
         # Parameters
-            * dataset (DataFrame): The dataset on which the POT model is to be fitted.
             * kwargs:
-                * exceedance_dataset (DataFrame): The dataset containing exceedance values.
+                * dataset (DataFrame): The dataset on which the POT model is to be fitted.
 
         # Returns
             * DataFrame: Anomaly scores for each feature in the dataset.
         """
-        exceedance_dataset = kwargs.get("exceedance_dataset", None)
+        try:
+            dataset: DataFrame = kwargs.get("dataset")
+        except Exception as e:
+            raise ValueError("The `dataset` parameter can't be None. Please assign your original dataset!")
+
         anomaly_scores = dataset.drop(dataset.index).add_prefix("anomaly_score_").to_dict(orient="list")
         anomaly_scores["total_anomaly_score"] = []
-        t1_t2_exceedances = exceedance_dataset.iloc[self.timeframe.t0 :]  # type: ignore
+        t1_t2_exceedances = self.exceedance_dataset.iloc[self.timeframe.t0 :]  # type: ignore
 
         self.__set_params_structure(total_rows=t1_t2_exceedances.shape[0])
 
         for row in range(0, t1_t2_exceedances.shape[0]):
-            exceedances_for_learning = exceedance_dataset.iloc[: self.timeframe.t0 + row]  # type: ignore
+            exceedances_for_learning = self.exceedance_dataset.iloc[: self.timeframe.t0 + row]  # type: ignore
             exceedances_of_interest = t1_t2_exceedances.iloc[[row]]
             total_anomaly_score_per_row = 0.0
 
@@ -263,22 +275,37 @@ class POTDetecto(Detecto):
             anomaly_scores["total_anomaly_score"].append(total_anomaly_score_per_row)
         self.anomaly_score_dataset = DataFrame(data=anomaly_scores)
 
-    def compute_anomaly_threshold(self, dataset: DataFrame, q: float = 0.80):
-        clean_dataset = dataset[
-            (dataset["total_anomaly_score"] > 0) & (dataset["total_anomaly_score"] != float("inf"))
-        ]
+    def compute_anomaly_threshold(self, q: float = 0.80):
+        try:
+            filtered_dataset: DataFrame = (
+                self.anomaly_score_dataset[  # type: ignore
+                    (self.anomaly_score_dataset["total_anomaly_score"] > 0)  # type: ignore
+                    & (self.anomaly_score_dataset["total_anomaly_score"] != float("inf"))  # type: ignore
+                ]
+                .iloc[: self.timeframe.t1]["total_anomaly_score"]
+                .to_list()
+            )
+        except Exception:
+            raise ValueError("`anomaly_score_dataset` is still None. Need to call `.fit()` first!")
 
-        if len(clean_dataset) == 0:
+        if len(filtered_dataset) == 0:
             raise ValueError("There are no total anomaly scores per row > 0")
 
         self.anomaly_threshold = quantile(
-            a=clean_dataset.iloc[: self.timeframe.t1]["total_anomaly_score"].to_list(),
+            a=filtered_dataset,
             q=q,
         )
 
-    def detect(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
+    def detect(self, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
         anomaly_data = {}
-        t2_dataset = dataset.iloc[self.timeframe.t1 :]
+        try:
+            t2_dataset: DataFrame = self.anomaly_score_dataset.iloc[self.timeframe.t1 :]  # type: ignore
+        except Exception:
+            raise ValueError("`anomaly_score_dataset` is still None. Need to call `.fit()` first!")
+
+        if not self.anomaly_threshold:
+            raise ValueError("`anomaly_threshold` is not set yet. Need to call `compute_anomaly_threshold()` first!")
+
         anomaly_data["is_anomaly"] = (
             t2_dataset["total_anomaly_score"].apply(lambda x: x > self.anomaly_threshold).to_list()
         )
