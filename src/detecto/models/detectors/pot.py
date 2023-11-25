@@ -18,7 +18,11 @@ class POTDetecto(Detecto):
 
     def __init__(self):
         self.timeframe = POTTimeframe()
+        self.exceedance_threshold_dataset = None
+        self.exceedance_dataset = None
+        self.anomaly_score_dataset = None
         self.anomaly_threshold = None
+        self.anomaly_dataset = None
         self.__params = {}
 
     def __set_params_structure(self, total_rows: int) -> None:
@@ -26,7 +30,7 @@ class POTDetecto(Detecto):
         Initialize the parameter structure for storing model parameters.
 
         # Parameters
-            * feature_names (list[int]): A registry of GPD parameters and statistics per row index and feature.
+            * total_rows (list[int]): The total number of row index from the dataset.
 
         # Returns
             * None: Create structure assigned to `__params` attribute.
