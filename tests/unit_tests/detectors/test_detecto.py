@@ -17,10 +17,10 @@ class TestDetectoInterfaceClass(TestCase):
         )
 
     def test_fit(self):
-        self.assertIsNone(obj=self.detector.fit(dataset=self.test_df))
+        self.assertIsNone(obj=self.detector.fit())
 
     def test_detect(self):
-        self.assertIsNone(obj=self.detector.detect(dataset=self.test_df))
+        self.assertIsNone(obj=self.detector.detect())
 
     def test_evaluate(self):
         self.assertIsNone(obj=self.detector.evaluate(dataset=self.test_df))
