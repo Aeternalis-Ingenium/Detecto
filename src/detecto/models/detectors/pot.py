@@ -167,7 +167,7 @@ class POTDetecto(Detecto):
         if type(dataset) != DataFrame:
             raise ValueError("The `dataset` parameter needs to be a Pandas DataFrame!")
 
-        if not self.timeframe.t0:
+        if self.timeframe.t0 is None:
             raise ValueError("The `t0` period is not set! Call `timeframe.set_interval()` first!")
 
         try:
@@ -197,15 +197,15 @@ class POTDetecto(Detecto):
         if type(dataset) != DataFrame:
             raise ValueError("The `dataset` parameter needs to be a Pandas DataFrame!")
 
-        if type(self.exceedance_threshold_dataset) == None:
+        if self.exceedance_threshold_dataset is None:
             raise ValueError(
                 "The `exceedance_threshold_dataset` is not set! Call `compute_exceedance_threshold()` first!"
             )
 
         try:
-            self.exceedance_dataset = dataset.subtract(self.exceedance_threshold_dataset, fill_value=fill_value).clip(
-                lower=clip_lower
-            )
+            self.exceedance_dataset = dataset.subtract(
+                other=self.exceedance_threshold_dataset, fill_value=fill_value
+            ).clip(lower=clip_lower)
         except Exception as e:
             print(e)
             raise
@@ -223,7 +223,7 @@ class POTDetecto(Detecto):
         """
         dataset: DataFrame = kwargs.get("dataset", None)
 
-        if type(dataset) == None:
+        if dataset is None:
             raise ValueError("The `dataset` parameter can't be None. Please assign your original dataset!")
         elif type(dataset) != DataFrame:
             raise ValueError("The `dataset` parameter needs to be a Pandas DataFrame!")
@@ -290,7 +290,7 @@ class POTDetecto(Detecto):
         self.anomaly_score_dataset = DataFrame(data=anomaly_scores)
 
     def compute_anomaly_threshold(self, q: float = 0.80):
-        if type(self.anomaly_score_dataset) == None:
+        if self.anomaly_score_dataset is None:
             raise ValueError("`anomaly_score_dataset` is still None. Need to call `.fit()` first!")
 
         try:
@@ -315,10 +315,10 @@ class POTDetecto(Detecto):
         )
 
     def detect(self, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
-        if type(self.anomaly_score_dataset) == None:
+        if self.anomaly_score_dataset is None:
             raise ValueError("`anomaly_score_dataset` is still None. Need to call `.fit()` first!")
 
-        if type(self.anomaly_threshold) == None:
+        if self.anomaly_threshold is None:
             raise ValueError("`anomaly_threshold` is not set yet. Need to call `compute_anomaly_threshold()` first!")
 
         anomaly_data = {}
