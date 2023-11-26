@@ -44,7 +44,7 @@ class POTDetecto(Detecto):
         Get the parameters set from model fitting.
 
         # Returns
-            * dict[Str, list[dict[int, dict[str, float | None]]]]: A dictionary containing the GPD fit parameters and statistics for each row and feature.
+            * dict[str, list[dict[int, dict[str, float | None]]]]: A dictionary containing the GPD fit parameters and statistics for each row and feature.
         """
         return self.__params
 
@@ -216,7 +216,7 @@ class POTDetecto(Detecto):
 
         # Parameters
             * kwargs:
-                * dataset (DataFrame): The dataset on which the POT model is to be fitted.
+                * dataset (DataFrame): The original timeseries dataset on which the POT model is to be fitted.
 
         # Returns
             * DataFrame: Anomaly scores for each feature in the dataset.
@@ -290,6 +290,16 @@ class POTDetecto(Detecto):
         self.anomaly_score_dataset = DataFrame(data=anomaly_scores)
 
     def compute_anomaly_threshold(self, q: float = 0.80):
+        """
+        Claculate the anomaly threshold with quantile method to be used to detect the anomalies.
+
+        # Parameters
+            * kwargs:
+                * q (float): The quantile to calculate the threshold, range values are 0.0 - 1.0.
+
+        # Returns
+            * float: The threshold for anomalous data.
+        """
         if self.anomaly_score_dataset is None:
             raise ValueError("`anomaly_score_dataset` is still None. Need to call `.fit()` first!")
 
@@ -315,6 +325,16 @@ class POTDetecto(Detecto):
         )
 
     def detect(self, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
+        """
+        Claculate the anomaly threshold with quantile method to be used to detect the anomalies.
+
+        # Parameters
+            * kwargs:
+                * None: No parameters needed for this method.
+
+        # Returns
+            * DataFrame: The final dataset with boolean values where `True` indicates an anomaly.
+        """
         if self.anomaly_score_dataset is None:
             raise ValueError("`anomaly_score_dataset` is still None. Need to call `.fit()` first!")
 
