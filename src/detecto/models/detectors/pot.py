@@ -400,6 +400,9 @@ class POTDetecto(Detecto):
         # Returns
             * None: The test result is a Pandas DataFrame, assigned to `kstest_result`.
         """
+        if not isinstance(nonzero_exceedance_dataset[0], Series):
+            raise ValueError("The element of `nonzero_exceedance_dataset` must be a Pandas Series!")
+
         kstest_results: dict = {}
 
         for feature_idx, feature_name in enumerate(self.exceedance_dataset.columns):  # type: ignore
