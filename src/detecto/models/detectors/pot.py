@@ -11,9 +11,14 @@ class POTDetecto(Detecto):
     POTDetecto class implements the Peaks Over Threshold (POT) approach for anomaly detection.
 
     # Attributes
-        * timeframe (POTTimeframe): Instance managing the timeframe details for the POT method.
-        * anomaly_threshold (float): The threshold to measure the anomalous data.
-        * __params (dict): Private dictionary to store parameters after model fitting.
+        * timeframe (POTTimeframe): A timeframe instance that manages the time windows (t0, t1, t2) for the "Peak over Threshold" method.
+        * exceedance_threshold_dataset (DataFrame | None): A Pandas DataFrame that holds the threshold to get the exceedances, default is None.
+        * exceedance_dataset (DataFrame | None): A Pandas DataFrame that holds the exceedances, default is None.
+        * anomaly_score_dataset (DataFrame | None): A Pandas dataFrame the stores the anomaly scores from gen. pareto fitting, default is None.
+        * anomaly_threshold (DataFrame | None): A single float that serves as the threshold to measure the anomalous data, default is None.
+        * anomaly_dataset (DataFrame | None): A Pandas DataFrame that serves as the final dataset where anomalies are observable, default is None.
+        * ktest_result (DataFrame | None): The evaluation result of the exceedances and GPD params distribution via Kolmogorov Smirnov test, default is None.
+        * __params (dict[str, list[dict[int, dict[str, float | None]]]]): Private dictionary to store parameters after model fitting.
     """
 
     def __init__(self):
