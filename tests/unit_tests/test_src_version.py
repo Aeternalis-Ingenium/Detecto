@@ -1,4 +1,4 @@
-from src import __version__
+from src.detecto import __version__
 
 
 def test_current_src_version():
