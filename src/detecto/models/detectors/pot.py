@@ -1,5 +1,5 @@
-from numpy import arange, quantile, sort
-from pandas import DataFrame
+from numpy import quantile
+from pandas import DataFrame, Series
 from scipy.stats import genpareto, ks_1samp
 
 from src.detecto.models.detectors.interface import Detecto
@@ -384,6 +384,54 @@ class POTDetecto(Detecto):
 
         self.anomaly_dataset = DataFrame(data=anomaly_data)
 
+    def __ks_1sample(self, nonzero_exceedance_dataset: list[Series], stat_distance_threshold: float = 0.05) -> None:
+        """
+        The wrapper method for "1 Sample Kolmogorov Smirnov" test using `scipy.stats.ks_1samp()`.
+
+        # Parameters
+            * nonzero_exceedance_dataset (list[Series]): A list of Pandas Series that are deconstructed from the `exceedance_dataset`.
+            * stat_distance_threshold (float): This parameter is used as the threshold to reject or accept the h0 that the 2 distributions are identical.
+
+        # Returns
+            * None: The test result is a Pandas DataFrame, assigned to `kstest_result`.
+        """
+        kstest_results: dict = {}
+
+        for feature_idx, feature_name in enumerate(self.exceedance_dataset.columns):  # type: ignore
+            non_zero_params = self.__get_nonzero_params(feature_name=feature_name)
+            kstest_results[feature_name] = {}
+            ks_result = ks_1samp(
+                x=nonzero_exceedance_dataset[feature_idx],
+                cdf=genpareto.cdf,
+                args=(non_zero_params[-1][1][0], non_zero_params[-1][1][1], non_zero_params[-1][1][2]),
+            )
+            kstest_results[feature_name]["total_exceedances"] = len(nonzero_exceedance_dataset[feature_idx])
+            kstest_results[feature_name]["stat_distance"] = ks_result.statistic
+            kstest_results[feature_name]["p_value"] = ks_result.pvalue
+            kstest_results[feature_name]["is_identical"] = ks_result.statistic < stat_distance_threshold
+            kstest_results[feature_name]["c"] = non_zero_params[-1][1][0]
+            kstest_results[feature_name]["loc"] = non_zero_params[-1][1][1]
+            kstest_results[feature_name]["scale"] = non_zero_params[-1][1][2]
+
+        self.kstest_result = DataFrame(
+            data={
+                "feature": [feature_name for feature_name in kstest_results.keys()],
+                "total_exceedances": [
+                    kstest_results[feature_name]["total_exceedances"] for feature_name in kstest_results.keys()
+                ],
+                "stat_distance": [
+                    kstest_results[feature_name]["stat_distance"] for feature_name in kstest_results.keys()
+                ],
+                "p_value": [kstest_results[feature_name]["p_value"] for feature_name in kstest_results.keys()],
+                "c": [kstest_results[feature_name]["c"] for feature_name in kstest_results.keys()],
+                "loc": [kstest_results[feature_name]["loc"] for feature_name in kstest_results.keys()],
+                "scale": [kstest_results[feature_name]["scale"] for feature_name in kstest_results.keys()],
+                "is_identical": [
+                    kstest_results[feature_name]["is_identical"] for feature_name in kstest_results.keys()
+                ],
+            }
+        )
+
     def evaluate(self, **kwargs: DataFrame | list | str | int | float | None) -> None:
         """
         Evaluate the correlation between the result of `genpareto.fit()` (params) and the `exceedance_dataset`.
@@ -408,41 +456,9 @@ class POTDetecto(Detecto):
 
         if kwargs.get("method") == "ks":
             stat_distance_threshold = kwargs.get("stat_distance_threshold", 0.03)
-            kstest_results: dict = {}
-
-            for feature_idx, feature_name in enumerate(self.exceedance_dataset.columns):
-                non_zero_params = self.__get_nonzero_params(feature_name=feature_name)
-                kstest_results[feature_name] = {}
-                ks_result = ks_1samp(
-                    x=filtered_exceedances_by_feature[feature_idx],
-                    cdf=genpareto.cdf,
-                    args=(non_zero_params[-1][1][0], non_zero_params[-1][1][1], non_zero_params[-1][1][2]),
-                )
-                kstest_results[feature_name]["total_exceedances"] = len(filtered_exceedances_by_feature[feature_idx])
-                kstest_results[feature_name]["stat_distance"] = ks_result.statistic
-                kstest_results[feature_name]["p_value"] = ks_result.pvalue
-                kstest_results[feature_name]["is_identical"] = ks_result.statistic < stat_distance_threshold
-                kstest_results[feature_name]["c"] = non_zero_params[-1][1][0]
-                kstest_results[feature_name]["loc"] = non_zero_params[-1][1][1]
-                kstest_results[feature_name]["scale"] = non_zero_params[-1][1][2]
-
-            self.kstest_result = DataFrame(
-                data={
-                    "feature": [feature_name for feature_name in kstest_results.keys()],
-                    "total_exceedances": [
-                        kstest_results[feature_name]["total_exceedances"] for feature_name in kstest_results.keys()
-                    ],
-                    "stat_distance": [
-                        kstest_results[feature_name]["stat_distance"] for feature_name in kstest_results.keys()
-                    ],
-                    "p_value": [kstest_results[feature_name]["p_value"] for feature_name in kstest_results.keys()],
-                    "c": [kstest_results[feature_name]["c"] for feature_name in kstest_results.keys()],
-                    "loc": [kstest_results[feature_name]["loc"] for feature_name in kstest_results.keys()],
-                    "scale": [kstest_results[feature_name]["scale"] for feature_name in kstest_results.keys()],
-                    "is_identical": [
-                        kstest_results[feature_name]["is_identical"] for feature_name in kstest_results.keys()
-                    ],
-                }
+            self.__ks_1sample(
+                nonzero_exceedance_dataset=filtered_exceedances_by_feature,
+                stat_distance_threshold=stat_distance_threshold,  # type: ignore
             )
 
     def __str__(self):
