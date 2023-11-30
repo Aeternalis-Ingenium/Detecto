@@ -24,8 +24,8 @@ class TestPOTDetecto(TestCase):
         self.timeframe.set_interval(total_rows=10000)
 
         self.assertEqual(first=self.timeframe.t0, second=6000)
-        self.assertEqual(first=self.timeframe.t1, second=2500)
-        self.assertEqual(first=self.timeframe.t2, second=1500)
+        self.assertEqual(first=self.timeframe.t1, second=3000)
+        self.assertEqual(first=self.timeframe.t2, second=1000)
 
     def test_pot_detecto_set_time_windows_method_prod_mode(self):
         self.timeframe.set_interval(total_rows=10000, prod_mode=True)

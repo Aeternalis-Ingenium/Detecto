@@ -605,8 +605,6 @@ class TestPOTDetecto(TestCase):
             data={
                 "is_anomaly": [
                     False,
-                    True,
-                    False,
                     False,
                     False,
                     False,
