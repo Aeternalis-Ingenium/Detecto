@@ -8,8 +8,11 @@ class Timeframe(metaclass=ABCMeta):
         Sets the interval period of the dataset for Detecto model to learn from.
 
         # Parameters
+        ------------
             * kwargs (int | float | bool): Any parameters that reflect the distribution of periods.
+
         # Returns
+        ------------
             * None
         """
         pass

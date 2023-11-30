@@ -8,9 +8,10 @@ from src.detecto.models.timeframes.pot import POTTimeframe
 
 class POTDetecto(Detecto):
     """
-    POTDetecto class implements the Peaks Over Threshold (POT) approach for anomaly detection.
+    Anomaly detector class that implements the "Peaks Over Threshold" (P. O. T.) method.
 
     # Attributes
+    ------------
         * timeframe (POTTimeframe): A timeframe instance that manages the time windows (t0, t1, t2) for the "Peak over Threshold" method.
         * exceedance_threshold_dataset (DataFrame | None): A Pandas DataFrame that holds the threshold to get the exceedances, default is None.
         * exceedance_dataset (DataFrame | None): A Pandas DataFrame that holds the exceedances, default is None.
@@ -36,9 +37,11 @@ class POTDetecto(Detecto):
         Initialize the parameter structure for storing model parameters.
 
         # Parameters
+        ------------
             * total_rows (list[int]): The total number of row index from the dataset.
 
         # Returns
+        ------------
             * None: Create structure assigned to `__params` attribute.
         """
         for row in range(0, total_rows):
@@ -50,6 +53,7 @@ class POTDetecto(Detecto):
         Get the parameters set from model fitting.
 
         # Returns
+        ------------
             * dict[str, list[dict[int, dict[str, float | None]]]]: A dictionary containing the GPD fit parameters and statistics for each row and feature.
         """
         return self.__params
@@ -59,6 +63,7 @@ class POTDetecto(Detecto):
         Set the parameters obtained after fitting the model.
 
         # Parameters
+        ------------
             * #### kwargs:
                 * feature_name (str): The name of the feature (column) to store the parameters and statistics of fitting result.
                 * row (int): The number of row that points the index of the data point.
@@ -70,6 +75,7 @@ class POTDetecto(Detecto):
                 * total_anomaly_score (float): The accumulated inverted p-values per row.
 
         # Example
+        ------------
         A dataset with two columns and two rows:
         ```json
             {
@@ -137,6 +143,7 @@ class POTDetecto(Detecto):
         ```
 
         # Returns
+        ------------
             * None: Add all GPD params and statistics and append it to `__params` attribute.
         """
         feature_name: str = kwargs.get("feature_name")  # type: ignore
@@ -160,6 +167,17 @@ class POTDetecto(Detecto):
         self.__params[kwargs.get("row")].append(data)
 
     def __get_nonzero_params(self, feature_name: str) -> list[tuple[int, tuple[float, float, float]]]:
+        """
+        Filter and return only GPD params where there are at least 1 parameter that is greater than 0.
+
+        # Parameters
+        ------------
+            * feature_name (str): The name of the feature for param search.
+
+        # Returns
+        ------------
+            * list[tuple[int, tuple[float, float, float]]]: A list of row index and a set of GPD parameters: c, loc, and scale.
+        """
         if self.timeframe.t1 is None:
             raise ValueError("`timeframes` are not set yet. Need to call `timeframe.set_interval()` first!")
 
@@ -193,10 +211,12 @@ class POTDetecto(Detecto):
         Calculate the exceedance threshold for each feature in the dataset.
 
         # Parameters
+        ------------
             * dataset (DataFrame): The dataset to calculate the threshold for.
             * q (float): The quantile to use for thresholding.
 
         # Returns
+        ------------
             * None: The result is a Pandas DataFrame with threshold values for each feature, assigned into `exceedance_threshold_dataset`.
         """
         if not isinstance(dataset, DataFrame):
@@ -221,12 +241,14 @@ class POTDetecto(Detecto):
         Extract values from the dataset that exceed the threshold values.
 
         # Parameters
+        ------------
             * dataset (DataFrame): The original dataset to compare against thresholds.
             * exceedance_threshold_dataset (DataFrame): Calculated thresholds for the dataset.
             * fill_value (float | None): Value to fill missing entries with before comparison.
             * clip_lower (float | None): Minimum value to clip data to after subtraction.
 
         # Returns
+        ------------
             * None: The result is a Pandas DataFrame with values exceeding the thresholds, assigned into `exceedance_dataset`.
         """
         if not isinstance(dataset, DataFrame):
@@ -250,10 +272,12 @@ class POTDetecto(Detecto):
         Fit the POT model on the dataset and calculate anomaly scores for each feature.
 
         # Parameters
+        ------------
             * kwargs:
                 * dataset (DataFrame): The original timeseries dataset on which the POT model is to be fitted.
 
         # Returns
+        ------------
             * None: The result is a Pandas DataFrame with anomaly scores for each feature in the dataset, assigned into `anomaly_score_dataset`.
         """
         dataset: DataFrame = kwargs.get("dataset", None)
@@ -329,10 +353,12 @@ class POTDetecto(Detecto):
         Claculate the anomaly threshold with quantile method to be used to detect the anomalies.
 
         # Parameters
+        ------------
             * kwargs:
                 * q (float): The quantile to calculate the threshold, range values are 0.0 - 1.0.
 
         # Returns
+        ------------
             * None: The threshold for anomalous data, assigned into `anomaly_threshold`.
         """
         if self.anomaly_score_dataset is None:
@@ -364,10 +390,12 @@ class POTDetecto(Detecto):
         Claculate the anomaly threshold with quantile method to be used to detect the anomalies.
 
         # Parameters
+        ------------
             * kwargs:
                 * None: No parameters needed for this method.
 
         # Returns
+        ------------
             * None: The result is a Pandas DataFrame with boolean values where `True` indicates an anomaly, assigned into `anomaly_dataset`.
         """
         if self.anomaly_score_dataset is None:
@@ -394,10 +422,12 @@ class POTDetecto(Detecto):
         The wrapper method for "1 Sample Kolmogorov Smirnov" test using `scipy.stats.ks_1samp()`.
 
         # Parameters
+        ------------
             * nonzero_exceedance_dataset (list[Series]): A list of Pandas Series that are deconstructed from the `exceedance_dataset`.
             * stat_distance_threshold (float): This parameter is used as the threshold to reject or accept the h0 that the 2 distributions are identical.
 
         # Returns
+        ------------
             * None: The test result is a Pandas DataFrame, assigned to `kstest_result`.
         """
         if not isinstance(nonzero_exceedance_dataset[0], Series):
@@ -445,6 +475,7 @@ class POTDetecto(Detecto):
         Evaluate the correlation between the result of `genpareto.fit()` (params) and the `exceedance_dataset`.
 
         # Parameters
+        ------------
             * kwargs:
                 * method (Literal["ks", "qq"]):
                     * "ks": 1 sample "Kolmogorov Smirnov" test evaluates the statistical distance between two distributions.
@@ -452,6 +483,7 @@ class POTDetecto(Detecto):
                 * stat_distance_threshold (float): This parameter only utilised when using Kolmogorov Smirnov test to reject or accept the h0.
 
         # Returns
+        ------------
             * None: The test result is either a Pandas DataFrame assigned to `kstest_result` or a plot to observe the visual correlation if `method = "qq"`.
         """
         if self.exceedance_dataset is None:

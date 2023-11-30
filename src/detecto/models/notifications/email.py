@@ -11,6 +11,7 @@ class EmailNotification(Notification):
     Notification class that setups the message for your anomalies and sends them via your email address.
 
     # Attributes:
+    ------------
         * sender_address (str): The email address from which the email will be sent.
         * password (str): The password or app-specific password for authenticating the email account.
         * recipient_addresses (list[str]): The list of your recipent's email addresses.
@@ -41,10 +42,12 @@ class EmailNotification(Notification):
         Formats a single anomaly dictionary into a string for Slack message formatting.
 
         # Parameters:
+        ------------
             * data (dict[str, str | float | int | datetime]): A dictionary containing details of an anomaly.
             * index (int): Index of the anomaly in the list, used for numbering in the message.
 
         # Returns:
+        ------------
             * str: Formatted string representing the anomaly.
         """
         date = data["date"]
@@ -56,12 +59,14 @@ class EmailNotification(Notification):
         """
         Prepares the email message with given data and a custom message.
 
-        Parameters:
-            data (list[dict[str, str | float | int | datetime]]): Data to be included in the email.
-            message (str): A custom message to be included in the email.
+        # Parameters:
+        ------------
+            * data (list[dict[str, str | float | int | datetime]]): Data to be included in the email.
+            * message (str): A custom message to be included in the email.
 
-        Returns:
-            None: This method prepares the email content.
+        # Returns:
+        ------------
+            * None: This method prepares the email content.
         """
         fmt_data = "\n".join(
             self.__format_data(data=anomaly_data, index=index) for index, anomaly_data in enumerate(data)
@@ -75,11 +80,13 @@ class EmailNotification(Notification):
         """
         Synchronously sends the prepared email to the specified addresses.
 
-        Parameters:
+        # Parameters:
+        ------------
             * None
 
-        Returns:
-            None: Sends notification via sender address and prints the status of the operation.
+        # Returns:
+        ------------
+            * None: Sends notification via sender address and prints the status of the operation.
         """
         if len(self.__payload) == 0:
             raise ValueError("Payload not set. Please call `setup()` method first.")

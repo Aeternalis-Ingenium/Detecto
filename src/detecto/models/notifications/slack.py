@@ -11,6 +11,7 @@ class SlackNotification(Notification):
     Notification class that setups message for your anomalies and sends them to Slack via webhook.
 
     # Attributes:
+    ------------
         * webhook_url (str): The URL of the Slack webhook used to send notifications.
         * __headers (dict[str, str]): The HTTP headers, by default - {"Content-Type": "application/json"}.
         * __payload (str): The payload for the notification message, by default an empty string.
@@ -27,10 +28,12 @@ class SlackNotification(Notification):
         Formats a single anomaly dictionary into a string for Slack message formatting.
 
         # Parameters:
+        ------------
             * data (dict[str, str | float | int | datetime]): A dictionary containing details of an anomaly.
             * index (int): Index of the anomaly in the list, used for numbering in the message.
 
         # Returns:
+        ------------
             * str: Formatted string representing the anomaly.
         """
         date = data["date"]
@@ -43,10 +46,12 @@ class SlackNotification(Notification):
         Prepares the Slack message with given data and a custom message.
 
         # Parameters:
+        ------------
             * data (list[dict[str, str | float | int | datetime]]): A list of dictionaries which represent all the detected anomaly data.
             * message (str): A custom message to be included in the notification.
 
         # Returns:
+        ------------
             * None: Prepares the Slack message payload and assign it to `__payload` attribute.
         """
         if type(data) != list:
@@ -75,9 +80,11 @@ class SlackNotification(Notification):
         Synchronously sends the prepared message to a Slack channel.
 
         # Parameters:
+        ------------
             * None
 
         # Returns:
+        ------------
             * None: Sends the notification to Slack and does not return anything. It prints the status of the operation.
         """
         if len(self.__payload) == 0:
