@@ -1091,7 +1091,28 @@ class TestPOTDetecto(TestCase):
         with self.assertRaises(expected_exception=ValueError):
             self.detector.detect()
 
-    def test_evaluate_method_with_kolmogorov_smirnof(self):
+    def test_get_nonzero_params_method_catches_value_error(self):
+        detector = POTDetecto()
+
+        with self.assertRaises(expected_exception=ValueError):
+            detector._POTDetecto__get_nonzero_params(feature_name="feature_1")  # type: ignore
+
+        detector.timeframe.set_interval(total_rows=1000)
+
+        with self.assertRaises(expected_exception=ValueError):
+            detector._POTDetecto__get_nonzero_params(feature_name="feature_1")  # type: ignore
+
+    def test_ks_1sample_method_catches_value_error(self):
+        with self.assertRaises(expected_exception=ValueError):
+            self.detector._POTDetecto__ks_1sample(  # type: ignore
+                nonzero_exceedance_dataset=[[0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5]], stat_distance_threshold=0.03
+            )
+
+    def test_ks_evaluate_method_catches_value_error(self):
+        with self.assertRaises(expected_exception=ValueError):
+            self.detector.evaluate(method="ks", stat_distance_threshold=0.05)
+
+    def test_evaluate_method_with_ks(self):
         test_df = DataFrame(
             data={
                 "df_1_feature_1": [
