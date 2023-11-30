@@ -1,6 +1,6 @@
 from numpy import quantile
-from pandas import DataFrame
-from scipy.stats import genpareto
+from pandas import DataFrame, Series
+from scipy.stats import genpareto, ks_1samp
 
 from src.detecto.models.detectors.interface import Detecto
 from src.detecto.models.timeframes.pot import POTTimeframe
@@ -11,9 +11,14 @@ class POTDetecto(Detecto):
     POTDetecto class implements the Peaks Over Threshold (POT) approach for anomaly detection.
 
     # Attributes
-        * timeframe (POTTimeframe): Instance managing the timeframe details for the POT method.
-        * anomaly_threshold (float): The threshold to measure the anomalous data.
-        * __params (dict): Private dictionary to store parameters after model fitting.
+        * timeframe (POTTimeframe): A timeframe instance that manages the time windows (t0, t1, t2) for the "Peak over Threshold" method.
+        * exceedance_threshold_dataset (DataFrame | None): A Pandas DataFrame that holds the threshold to get the exceedances, default is None.
+        * exceedance_dataset (DataFrame | None): A Pandas DataFrame that holds the exceedances, default is None.
+        * anomaly_score_dataset (DataFrame | None): A Pandas dataFrame the stores the anomaly scores from gen. pareto fitting, default is None.
+        * anomaly_threshold (DataFrame | None): A single float that serves as the threshold to measure the anomalous data, default is None.
+        * anomaly_dataset (DataFrame | None): A Pandas DataFrame that serves as the final dataset where anomalies are observable, default is None.
+        * ktest_result (DataFrame | None): The evaluation result of the exceedances and GPD params distribution via Kolmogorov Smirnov test, default is None.
+        * __params (dict[str, list[dict[int, dict[str, float | None]]]]): Private dictionary to store parameters after model fitting.
     """
 
     def __init__(self):
@@ -23,6 +28,7 @@ class POTDetecto(Detecto):
         self.anomaly_score_dataset = None
         self.anomaly_threshold = None
         self.anomaly_dataset = None
+        self.ktest_result = None
         self.__params = {}
 
     def __set_params_structure(self, total_rows: int) -> None:
@@ -153,6 +159,35 @@ class POTDetecto(Detecto):
         )
         self.__params[kwargs.get("row")].append(data)
 
+    def __get_nonzero_params(self, feature_name: str) -> list[tuple[int, tuple[float, float, float]]]:
+        if self.timeframe.t1 is None:
+            raise ValueError("`timeframes` are not set yet. Need to call `timeframe.set_interval()` first!")
+
+        if len(self.params) == 0:
+            raise ValueError("`__params` is still empty. Need to call `fit()` first!")
+
+        nonzero_params = []
+        for row_index in range(0, self.timeframe.t1 + self.timeframe.t2):  # type: ignore
+            for data_dict in self.params[row_index]:  # type: ignore
+                for key in data_dict.keys():
+                    if key == feature_name:
+                        if (
+                            data_dict[key]["gpd_params"]["c"] != 0  # type: ignore
+                            or data_dict[key]["gpd_params"]["loc"] != 0  # type: ignore
+                            or data_dict[key]["gpd_params"]["scale"] != 0  # type: ignore
+                        ):
+                            nonzero_params.append(
+                                (
+                                    row_index,
+                                    (
+                                        data_dict[key]["gpd_params"]["c"],  # type: ignore
+                                        data_dict[key]["gpd_params"]["loc"],  # type: ignore
+                                        data_dict[key]["gpd_params"]["scale"],  # type: ignore
+                                    ),
+                                )
+                            )
+        return nonzero_params
+
     def compute_exceedance_threshold(self, dataset: DataFrame, q: float = 0.99) -> None:
         """
         Calculate the exceedance threshold for each feature in the dataset.
@@ -162,9 +197,9 @@ class POTDetecto(Detecto):
             * q (float): The quantile to use for thresholding.
 
         # Returns
-            * DataFrame: The threshold values for each feature.
+            * None: The result is a Pandas DataFrame with threshold values for each feature, assigned into `exceedance_threshold_dataset`.
         """
-        if type(dataset) != DataFrame:
+        if not isinstance(dataset, DataFrame):
             raise ValueError("The `dataset` parameter needs to be a Pandas DataFrame!")
 
         if self.timeframe.t0 is None:
@@ -192,9 +227,9 @@ class POTDetecto(Detecto):
             * clip_lower (float | None): Minimum value to clip data to after subtraction.
 
         # Returns
-            * DataFrame: The dataset with values exceeding the thresholds.
+            * None: The result is a Pandas DataFrame with values exceeding the thresholds, assigned into `exceedance_dataset`.
         """
-        if type(dataset) != DataFrame:
+        if not isinstance(dataset, DataFrame):
             raise ValueError("The `dataset` parameter needs to be a Pandas DataFrame!")
 
         if self.exceedance_threshold_dataset is None:
@@ -219,7 +254,7 @@ class POTDetecto(Detecto):
                 * dataset (DataFrame): The original timeseries dataset on which the POT model is to be fitted.
 
         # Returns
-            * DataFrame: Anomaly scores for each feature in the dataset.
+            * None: The result is a Pandas DataFrame with anomaly scores for each feature in the dataset, assigned into `anomaly_score_dataset`.
         """
         dataset: DataFrame = kwargs.get("dataset", None)
 
@@ -289,7 +324,7 @@ class POTDetecto(Detecto):
             anomaly_scores["total_anomaly_score"].append(total_anomaly_score_per_row)
         self.anomaly_score_dataset = DataFrame(data=anomaly_scores)
 
-    def compute_anomaly_threshold(self, q: float = 0.80):
+    def compute_anomaly_threshold(self, q: float = 0.80) -> None:
         """
         Claculate the anomaly threshold with quantile method to be used to detect the anomalies.
 
@@ -298,7 +333,7 @@ class POTDetecto(Detecto):
                 * q (float): The quantile to calculate the threshold, range values are 0.0 - 1.0.
 
         # Returns
-            * float: The threshold for anomalous data.
+            * None: The threshold for anomalous data, assigned into `anomaly_threshold`.
         """
         if self.anomaly_score_dataset is None:
             raise ValueError("`anomaly_score_dataset` is still None. Need to call `.fit()` first!")
@@ -324,7 +359,7 @@ class POTDetecto(Detecto):
             q=q,
         )
 
-    def detect(self, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
+    def detect(self, **kwargs: DataFrame | list | str | int | float | None) -> None:
         """
         Claculate the anomaly threshold with quantile method to be used to detect the anomalies.
 
@@ -333,7 +368,7 @@ class POTDetecto(Detecto):
                 * None: No parameters needed for this method.
 
         # Returns
-            * DataFrame: The final dataset with boolean values where `True` indicates an anomaly.
+            * None: The result is a Pandas DataFrame with boolean values where `True` indicates an anomaly, assigned into `anomaly_dataset`.
         """
         if self.anomaly_score_dataset is None:
             raise ValueError("`anomaly_score_dataset` is still None. Need to call `.fit()` first!")
@@ -354,8 +389,85 @@ class POTDetecto(Detecto):
 
         self.anomaly_dataset = DataFrame(data=anomaly_data)
 
-    def evaluate(self, dataset: DataFrame, **kwargs: DataFrame | list | str | int | float | None) -> DataFrame:
-        pass
+    def __ks_1sample(self, nonzero_exceedance_dataset: list[Series], stat_distance_threshold: float = 0.05) -> None:
+        """
+        The wrapper method for "1 Sample Kolmogorov Smirnov" test using `scipy.stats.ks_1samp()`.
+
+        # Parameters
+            * nonzero_exceedance_dataset (list[Series]): A list of Pandas Series that are deconstructed from the `exceedance_dataset`.
+            * stat_distance_threshold (float): This parameter is used as the threshold to reject or accept the h0 that the 2 distributions are identical.
+
+        # Returns
+            * None: The test result is a Pandas DataFrame, assigned to `kstest_result`.
+        """
+        if not isinstance(nonzero_exceedance_dataset[0], Series):
+            raise ValueError("The element of `nonzero_exceedance_dataset` must be a Pandas Series!")
+
+        kstest_results: dict = {}
+
+        for feature_idx, feature_name in enumerate(self.exceedance_dataset.columns):  # type: ignore
+            non_zero_params = self.__get_nonzero_params(feature_name=feature_name)
+            kstest_results[feature_name] = {}
+            ks_result = ks_1samp(
+                x=nonzero_exceedance_dataset[feature_idx],
+                cdf=genpareto.cdf,
+                args=(non_zero_params[-1][1][0], non_zero_params[-1][1][1], non_zero_params[-1][1][2]),
+            )
+            kstest_results[feature_name]["total_exceedances"] = len(nonzero_exceedance_dataset[feature_idx])
+            kstest_results[feature_name]["stat_distance"] = ks_result.statistic
+            kstest_results[feature_name]["p_value"] = ks_result.pvalue
+            kstest_results[feature_name]["is_identical"] = ks_result.statistic < stat_distance_threshold
+            kstest_results[feature_name]["c"] = non_zero_params[-1][1][0]
+            kstest_results[feature_name]["loc"] = non_zero_params[-1][1][1]
+            kstest_results[feature_name]["scale"] = non_zero_params[-1][1][2]
+
+        self.kstest_result = DataFrame(
+            data={
+                "feature": [feature_name for feature_name in kstest_results.keys()],
+                "total_exceedances": [
+                    kstest_results[feature_name]["total_exceedances"] for feature_name in kstest_results.keys()
+                ],
+                "stat_distance": [
+                    kstest_results[feature_name]["stat_distance"] for feature_name in kstest_results.keys()
+                ],
+                "p_value": [kstest_results[feature_name]["p_value"] for feature_name in kstest_results.keys()],
+                "c": [kstest_results[feature_name]["c"] for feature_name in kstest_results.keys()],
+                "loc": [kstest_results[feature_name]["loc"] for feature_name in kstest_results.keys()],
+                "scale": [kstest_results[feature_name]["scale"] for feature_name in kstest_results.keys()],
+                "is_identical": [
+                    kstest_results[feature_name]["is_identical"] for feature_name in kstest_results.keys()
+                ],
+            }
+        )
+
+    def evaluate(self, **kwargs: DataFrame | list | str | int | float | None) -> None:
+        """
+        Evaluate the correlation between the result of `genpareto.fit()` (params) and the `exceedance_dataset`.
+
+        # Parameters
+            * kwargs:
+                * method (Literal["ks", "qq"]):
+                    * "ks": 1 sample "Kolmogorov Smirnov" test evaluates the statistical distance between two distributions.
+                    * "qq": The "Quantile-Quantile" plot evaluates visually the linear correlation between the sample and theoretical quantiles.
+                * stat_distance_threshold (float): This parameter only utilised when using Kolmogorov Smirnov test to reject or accept the h0.
+
+        # Returns
+            * None: The test result is either a Pandas DataFrame assigned to `kstest_result` or a plot to observe the visual correlation if `method = "qq"`.
+        """
+        if self.exceedance_dataset is None:
+            raise ValueError("`exceedance_dataset` is still None. Need to call `extract_exceedance()` first!")
+
+        filtered_exceedances_by_feature = [
+            self.exceedance_dataset[self.exceedance_dataset[feature_name] > 0][feature_name].copy()
+            for feature_name in self.exceedance_dataset.columns
+        ]
+
+        if kwargs.get("method") == "ks":
+            stat_distance_threshold = kwargs.get("stat_distance_threshold", 0.03)
+            self.__ks_1sample(
+                nonzero_exceedance_dataset=filtered_exceedances_by_feature,
+                stat_distance_threshold=stat_distance_threshold,  # type: ignore
+            )
 
     def __str__(self):
         return "Peak Over Threshold Anomaly Detector"
