@@ -25,8 +25,8 @@ class POTTimeframe(Timeframe):
             * #### kwargs
                 * total_rows (int): The total number of rows in the dataset.
                 * t0_percentage (float | None): The percentage of the total rows to use for learning the normal behavior, default 0.6.
-                * t1_percentage (float | None): The percentage of the total rows to use for setting the threshold, default 0.25.
-                * t2_percentage (float | None): The percentage of the total rows to use for detecting anomalies, default 0.15.
+                * t1_percentage (float | None): The percentage of the total rows to use for setting the threshold, default 0.3.
+                * t2_percentage (float | None): The percentage of the total rows to use for detecting anomalies, default 0.1.
                 * prod_mode (bool): A flag indicating whether the model is in production mode, which affects the interval calculations, default False.
 
         # Returns
@@ -43,7 +43,7 @@ class POTTimeframe(Timeframe):
                 (t0_percentage - t1_percentage != 0.0) or (t1_percentage - t0_percentage != 0.0)
             ):
                 raise ValueError(
-                    "If `prod_mode` is True t2 always = 1. Hence t0_percentage + t1_percentage must equal to 1.0 (100%)."
+                    "If `prod_mode = True`, t2 always = 1. Hence `t0_percentage` + `t1_percentage` must equal to 1.0 (100%)."
                 )
 
             t2 = 1
