@@ -8,6 +8,7 @@ Detecto is only possible because of the following technologies:
 - [Pandas 2.1.1](https://pandas.pydata.org/)
 - [NumPy 1.26.0](https://numpy.org/)
 - [SciPy 1.11.3](https://scipy.org/)
+- [Matplotlib 3.8.2](https://matplotlib.org/)
 - [Pytest-Cov 4.1.0.](https://pytest-cov.readthedocs.io/en/latest/)
 - [Black 23.10.0](https://black.readthedocs.io/en/stable/)
 - [Isort 5.12.0](https://pycqa.github.io/isort/)
