@@ -1,4 +1,7 @@
-from numpy import quantile
+from random import randint
+
+from matplotlib.pyplot import figure, legend, show, subplots
+from numpy import arange, max as np_max, min as np_min, quantile, sort
 from pandas import DataFrame, Series
 from scipy.stats import genpareto, ks_1samp
 
@@ -29,7 +32,7 @@ class POTDetecto(Detecto):
         self.anomaly_score_dataset = None
         self.anomaly_threshold = None
         self.anomaly_dataset = None
-        self.ktest_result = None
+        self.kstest_result = None
         self.__params = {}
 
     def __set_params_structure(self, total_rows: int) -> None:
@@ -470,6 +473,91 @@ class POTDetecto(Detecto):
             }
         )
 
+    def __qq_calculation(
+        self, is_random_row: bool = False
+    ) -> list[tuple[list[float], list[float], tuple[float, float, float]]]:
+        """
+        Calculate the theoretical quantile via the `scipy.genpareto.ppf()` with GPD params from `scipy.genpareto.fit()` as arguments.
+
+        # Parameters
+        ------------
+            * is_random_row (bool): A flag to indicate whether to randomly get the non-zero parameters or simply the last one, default is `False`.
+
+        # Returns
+        ------------
+            * list[tuple[list[float], list[float], tuple[float, float, float]]]: A list of sorted exceedances, theoretical quantile scores, and parameters.
+        """
+        qqs = []
+        for feature_name in self.exceedance_dataset.columns:  # type: ignore
+            exceedence_series = self.exceedance_dataset[feature_name].copy()  # type: ignore
+            nonzero_exceedences = exceedence_series[exceedence_series > 0]
+            sorted_nonzero_exceedences = sort(nonzero_exceedences)
+            q = arange(1, len(sorted_nonzero_exceedences) + 1) / (len(sorted_nonzero_exceedences) + 1)
+            nonzero_params = self.__get_nonzero_params(feature_name=feature_name)
+
+            if is_random_row:
+                randomized_params = nonzero_params[randint(a=0, b=len(nonzero_params) - 1)][1]
+                theoretical_q = genpareto.ppf(
+                    q=q, c=randomized_params[0], loc=randomized_params[1], scale=randomized_params[2]
+                )
+                qqs.append(
+                    (
+                        sorted_nonzero_exceedences,
+                        theoretical_q,
+                        (randomized_params[0], randomized_params[1], randomized_params[2]),
+                    )
+                )
+            else:
+                theoretical_q = genpareto.ppf(
+                    q=q, c=nonzero_params[-1][1][0], loc=nonzero_params[-1][1][1], scale=nonzero_params[-1][1][2]
+                )
+                qqs.append(
+                    (
+                        sorted_nonzero_exceedences,
+                        theoretical_q,
+                        (nonzero_params[-1][1][0], nonzero_params[-1][1][1], nonzero_params[-1][1][2]),
+                    )
+                )
+        return qqs
+
+    def __qq_plot(self, is_random_row: bool = False):
+        """
+        Plot the sample quantile in y axis and theoretical quantile in x axis for visual observation of the linear correlation between exceedances and the GPD params.
+
+        # Parameters
+        ------------
+            * is_random_row (bool): A flag to indicate whether to randomly get the non-zero parameters or simply the last one, default is `False`.
+
+        # Returns
+        ------------
+            * None: Display plots of exceedances and theoretical quantile (green line), 1 plot per feature.
+        """
+        qqs = self.__qq_calculation(is_random_row=is_random_row)
+
+        fig, axs = subplots(figsize=(20, 15), nrows=len(qqs))
+
+        x_label = "Theoretical Quantiles"
+        y_label = "Sample Quantiles"
+
+        for index in range(0, len(qqs)):
+            ax = axs[index]
+            ax.scatter(qqs[index][1], qqs[index][0], c="black", label=f"{len(qqs[index][0])} Exceedences > 0")
+            ax.plot(
+                [np_min(qqs[index][1]), np_max(qqs[index][1])],
+                [np_min(qqs[index][1]), np_max(qqs[index][1])],
+                c="lime",
+                lw=2,
+                label=f"\nFitted GPD Params:\n    c: {round(qqs[index][2][0], 3)}\n    loc: {round(qqs[index][2][1], 3)}\n    scale: {round(qqs[index][2][2], 3)}",
+            )
+            ax.set_xlabel(x_label)
+            ax.set_ylabel(y_label)
+            ax.set_box_aspect(0.5)
+            ax.legend(loc="upper left", shadow=True, fancybox=True)
+            ax.set_title("\nGPD Params", fontsize=10)
+
+        fig.suptitle("QQ Plot - GPD", fontsize=22)
+        show()
+
     def evaluate(self, **kwargs: DataFrame | list | str | int | float | None) -> None:
         """
         Evaluate the correlation between the result of `genpareto.fit()` (params) and the `exceedance_dataset`.
@@ -500,6 +588,9 @@ class POTDetecto(Detecto):
                 nonzero_exceedance_dataset=filtered_exceedances_by_feature,
                 stat_distance_threshold=stat_distance_threshold,  # type: ignore
             )
+        elif kwargs.get("method") == "qq":
+            is_qq_random_row = kwargs.get("is_qq_random_row")
+            self.__qq_plot(is_random_row=is_qq_random_row)  # type: ignore
 
     def __str__(self):
         return "Peak Over Threshold Anomaly Detector"
