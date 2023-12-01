@@ -68,12 +68,22 @@ class EmailNotification(Notification):
         ------------
             * None: This method prepares the email content.
         """
+        if not isinstance(data, list):
+            raise TypeError("Data argument must be of type list")
+        else:
+            for element in data:
+                if not isinstance(element, dict):
+                    raise TypeError("Data argument must be of type dict")
+                else:
+                    for key in element.keys():
+                        if key not in ["date", "column", "anomaly"]:
+                            raise KeyError("Key needs to be one of these: date, column, anomaly")
+
         fmt_data = "\n".join(
             self.__format_data(data=anomaly_data, index=index) for index, anomaly_data in enumerate(data)
         )
         fmt_message = f"{message}\n\n{fmt_data}"
         self.__payload = fmt_message
-        pass
 
     @property
     def send(self):

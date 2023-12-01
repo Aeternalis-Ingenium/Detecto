@@ -54,11 +54,11 @@ class SlackNotification(Notification):
         ------------
             * None: Prepares the Slack message payload and assign it to `__payload` attribute.
         """
-        if type(data) != list:
+        if not isinstance(data, list):
             raise TypeError("Data argument must be of type list")
         else:
             for element in data:
-                if type(element) != dict:
+                if not isinstance(element, dict):
                     raise TypeError("Data argument must be of type dict")
                 else:
                     for key in element.keys():
@@ -68,6 +68,7 @@ class SlackNotification(Notification):
         fmt_data = "\n".join(
             self.__format_data(data=anomaly_data, index=index) for index, anomaly_data in enumerate(data)
         )
+
         if not message:
             fmt_message = f"{self.__subject}\n" f"\n\n{fmt_data}"
         else:
