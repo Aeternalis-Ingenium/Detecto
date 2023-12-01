@@ -108,4 +108,4 @@ class EmailNotification(Notification):
             print(f"Failed to send email. Error: {e}")
 
     def __str__(self):
-        return "Email Notification Class"
+        return "Email Notification"

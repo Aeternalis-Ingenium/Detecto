@@ -104,4 +104,4 @@ class SlackNotification(Notification):
         connection.close()
 
     def __str__(self):
-        return "Slack Notification Class"
+        return "Slack Notification"
