@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 # Let users know if they're missing any of our hard dependencies
-__hard_dependencies = ("numpy", "pandas", "scipy")
+__hard_dependencies = ("matplotlib", "numpy", "pandas", "scipy")
 __missing_dependencies = []
 
 for __dependency in __hard_dependencies:
