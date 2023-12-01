@@ -48,8 +48,8 @@ class TestEmailNotification(TestCase):
         )
 
     def test_string_method(self):
-        self.assertTrue(expr=str(self.gmail_notification) == "Email Notification Class")
-        self.assertTrue(expr=str(self.webde_notification) == "Email Notification Class")
+        self.assertTrue(expr=str(self.gmail_notification) == "Email Notification")
+        self.assertTrue(expr=str(self.webde_notification) == "Email Notification")
 
     def test_setup_with_wrong_data_type(self):
         with self.assertRaises(expected_exception=TypeError):

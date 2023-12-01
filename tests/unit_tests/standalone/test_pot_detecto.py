@@ -545,7 +545,7 @@ class TestStandalonePOTDetectoFunctions(TestCase):
         self.assertEqual(first=type(gpd_params), second=dict)
 
         extreme_anomaly_threshold = compute_extreme_anomaly_threshold(
-            dataset=extreme_anomaly_score_df, total_anomaly_score_column="total_anomaly_score", t1=t1, q=0.90
+            dataset=extreme_anomaly_score_df, total_anomaly_score_feature="total_anomaly_score", t1=t1, q=0.90
         )
 
         self.assertEqual(first=extreme_anomaly_threshold, second=expected_extreme_anomaly_threshold)
@@ -977,14 +977,14 @@ class TestStandalonePOTDetectoFunctions(TestCase):
         self.assertEqual(first=type(gpd_params), second=dict)
 
         extreme_anomaly_threshold = compute_extreme_anomaly_threshold(
-            dataset=extreme_anomaly_score_df, total_anomaly_score_column="total_anomaly_score", t1=t1, q=0.90
+            dataset=extreme_anomaly_score_df, total_anomaly_score_feature="total_anomaly_score", t1=t1, q=0.90
         )
 
         self.assertEqual(first=extreme_anomaly_threshold, second=expected_extreme_anomaly_threshold)
 
         extreme_anomaly_df = detect_extreme_anomaly(
             dataset=extreme_anomaly_score_df,
-            total_anomaly_score_column="total_anomaly_score",
+            total_anomaly_score_feature="total_anomaly_score",
             t1=t1,
             extreme_anomaly_threshold=extreme_anomaly_threshold,
         )

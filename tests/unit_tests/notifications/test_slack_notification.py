@@ -27,7 +27,7 @@ class TestSlackNotification(TestCase):
         )
 
     def test_string_method(self):
-        self.assertTrue(expr=str(self.slack_notification) == "Slack Notification Class")
+        self.assertTrue(expr=str(self.slack_notification) == "Slack Notification")
 
     def test_setup_with_wrong_data_type(self):
         with self.assertRaises(expected_exception=TypeError):
