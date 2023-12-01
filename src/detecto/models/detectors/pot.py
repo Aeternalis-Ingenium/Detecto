@@ -387,7 +387,7 @@ class POTDetecto(Detecto):
 
     def detect(self, **kwargs: DataFrame | list | str | int | float | None) -> None:
         """
-        Claculate the anomaly threshold with quantile method to be used to detect the anomalies.
+        Compare the total anomaly scores with the anomaly threshold to detect the anomalous data.
 
         # Parameters
         ------------
