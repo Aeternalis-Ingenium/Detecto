@@ -6,6 +6,8 @@ from src.detecto.models.detectors.mad import MADDetecto
 from src.detecto.models.detectors.one_class_svm import OneClassSVMDetecto
 from src.detecto.models.detectors.pot import POTDetecto
 from src.detecto.models.detectors.zscore import ZScoreDetecto
+from src.detecto.models.notifications.email import EmailNotification
+from src.detecto.models.notifications.slack import SlackNotification
 
 Detecto = (
     AutoencoderDetecto
@@ -17,3 +19,5 @@ Detecto = (
     | POTDetecto
     | ZScoreDetecto
 )
+
+Notification = EmailNotification | SlackNotification
