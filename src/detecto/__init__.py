@@ -16,5 +16,14 @@ del __hard_dependencies, __dependency, __missing_dependencies
 
 
 from src.detecto.models.detectors.factory import init_detecto
+from src.detecto.models.notifications.factory import get_notification
+from src.detecto.standalone.pot_detecto import (
+    compute_extreme_anomaly_threshold,
+    compute_pot_threshold,
+    detect_extreme_anomaly,
+    extract_pot_data,
+    fit_pot_data,
+    set_gpd_params,
+)
 
 __version__ = "0.1.0"
